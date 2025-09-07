@@ -1,6 +1,6 @@
 {
   "name": "claude-code-security-rulesets",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A CLI tool and enterprise platform for generating, validating, and deploying Claude Code security configurations with zero-bypass deny enforcement",
   "main": "dist/index.js",
   "bin": {
@@ -33,7 +33,7 @@
     "validate": "npm run lint && npm run test && npm run build",
     "prepublishOnly": "npm run validate",
     "release:patch": "npm version patch && git push --tags",
-    "release:minor": "npm version minor && git push --tags", 
+    "release:minor": "npm version minor && git push --tags",
     "release:major": "npm version major && git push --tags",
     "release:prerelease": "npm version prerelease --preid=beta && git push --tags"
   },
