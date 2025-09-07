@@ -1,0 +1,169 @@
+{
+  "name": "Custom Application Template",
+  "version": "1.0.0",
+  "category": "custom",
+  "description": "Custom security template for React/Node.js applications with TypeScript",
+  "compliance": ["Internal-Security-Policy"],
+  "tags": ["custom", "react", "nodejs", "typescript"],
+  
+  "baseTemplate": "development",
+  "extends": "development",
+  
+  "rules": {
+    "deny": [
+      "**/app-secrets/**",
+      "**/database-credentials/**",
+      "**/api-keys/**",
+      "**/oauth-tokens/**",
+      "**/.next/cache/**",
+      "**/node_modules/.cache/**",
+      "Execute(dangerous-migration-script)",
+      "Execute(drop-database)",
+      "Network(admin.internal.com)"
+    ],
+    "allow": [
+      "Execute(npm run build)",
+      "Execute(npm run test)",
+      "Execute(npm run lint)",
+      "Execute(npm run format)",
+      "Execute(yarn build)",
+      "Execute(yarn test)",
+      "Execute(tsc)",
+      "Execute(eslint)",
+      "Execute(prettier)",
+      "Execute(jest)",
+      "Execute(webpack)",
+      "Execute(vite)",
+      "Network(api.stripe.com)",
+      "Network(api.sendgrid.com)",
+      "Network(fonts.googleapis.com)",
+      "Network(cdn.jsdelivr.net)",
+      "Network(unpkg.com)",
+      "Write(/app/dist/**)",
+      "Write(/app/build/**)",
+      "Write(/app/.next/**)",
+      "Write(/app/coverage/**)"
+    ],
+    "ask": [
+      "Execute(npm run deploy)",
+      "Execute(yarn deploy)",
+      "Execute(migration-script)",
+      "Network(api.production.com)",
+      "Write(**/database-config.json)",
+      "Execute(pm2)",
+      "Execute(forever)"
+    ]
+  },
+  
+  "parameters": [
+    {
+      "name": "appPath",
+      "type": "string",
+      "description": "Application root directory",
+      "required": true,
+      "defaultValue": "/app",
+      "validation": {
+        "pattern": "^/[a-zA-Z0-9/_-]+$"
+      }
+    },
+    {
+      "name": "buildTool",
+      "type": "string",
+      "description": "Build tool to allow (npm, yarn, or pnpm)",
+      "required": false,
+      "defaultValue": "npm",
+      "validation": {
+        "enum": ["npm", "yarn", "pnpm"]
+      }
+    },
+    {
+      "name": "testFramework",
+      "type": "string",
+      "description": "Testing framework to allow",
+      "required": false,
+      "defaultValue": "jest",
+      "validation": {
+        "enum": ["jest", "mocha", "vitest", "cypress"]
+      }
+    },
+    {
+      "name": "allowedAPIs",
+      "type": "array",
+      "description": "List of external APIs to allow access to",
+      "required": false,
+      "defaultValue": ["api.stripe.com", "api.sendgrid.com"],
+      "validation": {
+        "items": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+        }
+      }
+    },
+    {
+      "name": "debugMode",
+      "type": "boolean",
+      "description": "Enable debug mode with additional logging",
+      "required": false,
+      "defaultValue": false
+    },
+    {
+      "name": "teamName",
+      "type": "string",
+      "description": "Team name for audit logging",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-zA-Z0-9-]+$",
+        "minLength": 2,
+        "maxLength": 50
+      }
+    }
+  ],
+  
+  "conditionalRules": [
+    {
+      "condition": "debugMode == true",
+      "rules": {
+        "allow": [
+          "Write(/app/logs/debug/**)",
+          "Execute(npm run debug)",
+          "Execute(node --inspect)"
+        ]
+      }
+    },
+    {
+      "condition": "buildTool == 'yarn'",
+      "rules": {
+        "allow": [
+          "Execute(yarn install)",
+          "Execute(yarn upgrade)",
+          "Network(registry.yarnpkg.com)"
+        ]
+      }
+    },
+    {
+      "condition": "testFramework == 'cypress'",
+      "rules": {
+        "allow": [
+          "Execute(cypress run)",
+          "Execute(cypress open)",
+          "Network(download.cypress.io)"
+        ]
+      }
+    }
+  ],
+  
+  "features": {
+    "auditLogging": true,
+    "performanceMonitoring": false,
+    "conflictDetection": true
+  },
+  
+  "metadata": {
+    "author": "Development Team",
+    "lastModified": "2024-01-15T10:00:00Z",
+    "reviewers": ["security-team@company.com", "tech-lead@company.com"],
+    "approvalRequired": false,
+    "documentation": "https://wiki.company.com/security/custom-app-template",
+    "supportContact": "dev-team@company.com"
+  }
+}

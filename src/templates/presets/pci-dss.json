@@ -1,0 +1,274 @@
+{
+  "name": "pci-dss",
+  "description": "PCI-DSS v4.0 compliance template for payment card data protection",
+  "version": "1.0.0",
+  "author": "Claude Code Security",
+  "lastModified": "2025-01-04",
+  "compatibility": {
+    "minVersion": "1.0.0",
+    "platforms": ["windows", "macos", "linux"]
+  },
+  "metadata": {
+    "category": "compliance",
+    "severity": "critical",
+    "useCase": "Organizations handling payment card data",
+    "complianceFrameworks": ["PCI-DSS v4.0", "PA-DSS"],
+    "tags": ["pci", "payment", "cardholder", "financial", "credit-card"]
+  },
+  "rules": {
+    "cardholder_data": {
+      "description": "Req 3.3 - Cardholder Data Protection",
+      "patterns": [
+        "**/*card*number*",
+        "**/*card*holder*",
+        "**/*pan*",
+        "**/*primary*account*",
+        "**/*credit*card*",
+        "**/*debit*card*",
+        "**/*payment*card*",
+        "**/*cvv*",
+        "**/*cvc*",
+        "**/*cvn*",
+        "**/*cid*",
+        "**/*pin*block*",
+        "**/*track*data*",
+        "**/payment*/**",
+        "**/billing*/**",
+        "**/transaction*/**"
+      ],
+      "rationale": "PCI-DSS prohibits storing sensitive authentication data",
+      "severity": "critical",
+      "allowExceptions": false,
+      "auditRequired": true,
+      "maskingRequired": true
+    },
+    "sensitive_auth_data": {
+      "description": "Req 3.2 - Sensitive Authentication Data",
+      "patterns": [
+        "**/*mag*stripe*",
+        "**/*track1*",
+        "**/*track2*",
+        "**/*emv*chip*",
+        "**/*icc*data*",
+        "**/*pin*",
+        "**/*pin*verification*",
+        "**/*service*code*",
+        "**/*validation*code*"
+      ],
+      "rationale": "PCI-DSS prohibits storage of sensitive authentication data after authorization",
+      "severity": "critical",
+      "allowExceptions": false,
+      "auditRequired": true,
+      "prohibited": true
+    },
+    "encryption_keys": {
+      "description": "Req 3.5/3.6 - Cryptographic Key Management",
+      "patterns": [
+        "**/*encrypt*key*",
+        "**/*decrypt*key*",
+        "**/*master*key*",
+        "**/*dek*",
+        "**/*kek*",
+        "**/*key*encrypt*key*",
+        "**/*data*encrypt*key*",
+        "**/hsm*/**",
+        "**/key*management*/**",
+        "**/crypto*key*/**",
+        "**/*.key",
+        "**/*.pem"
+      ],
+      "rationale": "PCI-DSS requires secure cryptographic key management",
+      "severity": "critical",
+      "allowExceptions": false,
+      "auditRequired": true,
+      "rotationRequired": true
+    },
+    "network_segmentation": {
+      "description": "Req 1 - Network Segmentation",
+      "patterns": [
+        "**/network*config*/**",
+        "**/firewall*rule*/**",
+        "**/vlan*config*/**",
+        "**/subnet*config*/**",
+        "**/dmz*/**",
+        "**/cde*/**",
+        "**/cardholder*environment*/**",
+        "**/segmentation*/**"
+      ],
+      "rationale": "PCI-DSS requires network segmentation for CDE",
+      "severity": "critical",
+      "allowExceptions": false,
+      "auditRequired": true
+    },
+    "access_control": {
+      "description": "Req 7/8 - Access Control",
+      "patterns": [
+        "**/access*control*/**",
+        "**/user*privilege*/**",
+        "**/role*based*/**",
+        "**/permission*/**",
+        "**/authentication*/**",
+        "**/authorization*/**",
+        "**/admin*credential*/**",
+        "**/system*account*/**"
+      ],
+      "rationale": "PCI-DSS requires strict access control to cardholder data",
+      "severity": "critical",
+      "allowExceptions": false,
+      "auditRequired": true
+    },
+    "strong_crypto": {
+      "description": "Req 2.3/4.1 - Strong Cryptography",
+      "patterns": [
+        "**/ssl*/**",
+        "**/tls*/**",
+        "**/https*config*/**",
+        "**/cert*/**",
+        "**/certificate*/**",
+        "**/cipher*suite*/**",
+        "**/protocol*config*/**"
+      ],
+      "rationale": "PCI-DSS requires strong cryptography for transmission",
+      "severity": "critical",
+      "allowExceptions": false,
+      "auditRequired": true,
+      "minimumTLS": "1.2"
+    },
+    "logging_monitoring": {
+      "description": "Req 10 - Logging and Monitoring",
+      "patterns": [
+        "**/audit*log*/**",
+        "**/access*log*/**",
+        "**/transaction*log*/**",
+        "**/security*log*/**",
+        "**/event*log*/**",
+        "**/system*log*/**",
+        "**/application*log*/**",
+        "**/payment*log*/**"
+      ],
+      "rationale": "PCI-DSS requires comprehensive logging",
+      "severity": "critical",
+      "allowExceptions": false,
+      "auditRequired": true,
+      "retentionDays": 365
+    },
+    "vulnerability_management": {
+      "description": "Req 6 - Vulnerability Management",
+      "patterns": [
+        "**/vulnerability*scan*/**",
+        "**/security*scan*/**",
+        "**/penetration*test*/**",
+        "**/security*assessment*/**",
+        "**/patch*management*/**",
+        "**/cve*/**"
+      ],
+      "rationale": "PCI-DSS requires vulnerability management program",
+      "severity": "high",
+      "allowExceptions": false,
+      "auditRequired": true
+    },
+    "secure_development": {
+      "description": "Req 6.3 - Secure Development",
+      "patterns": [
+        "**/development*key*/**",
+        "**/test*card*/**",
+        "**/sandbox*payment*/**",
+        "**/dev*credential*/**",
+        "**/test*credential*/**",
+        "**/staging*credential*/**"
+      ],
+      "rationale": "PCI-DSS requires secure development practices",
+      "severity": "high",
+      "allowExceptions": true,
+      "exceptions": ["**/test/fixtures/**"],
+      "auditRequired": true
+    },
+    "physical_security": {
+      "description": "Req 9 - Physical Security",
+      "patterns": [
+        "**/physical*access*/**",
+        "**/badge*/**",
+        "**/facility*/**",
+        "**/datacenter*/**",
+        "**/media*disposal*/**",
+        "**/visitor*log*/**"
+      ],
+      "rationale": "PCI-DSS requires physical access controls",
+      "severity": "high",
+      "allowExceptions": false,
+      "auditRequired": true
+    },
+    "vendor_management": {
+      "description": "Req 12.8 - Service Provider Management",
+      "patterns": [
+        "**/vendor*/**/*payment*",
+        "**/third*party*/**/*card*",
+        "**/service*provider*/**",
+        "**/processor*/**",
+        "**/gateway*/**",
+        "**/acquiring*bank*/**"
+      ],
+      "rationale": "PCI-DSS requires vendor security management",
+      "severity": "high",
+      "allowExceptions": false,
+      "auditRequired": true
+    },
+    "incident_response": {
+      "description": "Req 12.10 - Incident Response",
+      "patterns": [
+        "**/incident*response*/**",
+        "**/breach*/**",
+        "**/compromise*/**",
+        "**/forensic*/**",
+        "**/security*incident*/**"
+      ],
+      "rationale": "PCI-DSS requires incident response plan",
+      "severity": "critical",
+      "allowExceptions": false,
+      "auditRequired": true
+    }
+  },
+  "allowedPatterns": [
+    "**/test/unit/**",
+    "**/test/integration/**",
+    "**/documentation/**",
+    "**/compliance/reports/**"
+  ],
+  "settings": {
+    "enableAutoFix": false,
+    "scanFrequency": "continuous",
+    "notificationLevel": "error",
+    "blockOnViolation": true,
+    "enableGitHooks": true,
+    "requireApproval": true,
+    "auditLogging": true,
+    "complianceMode": "pci-dss",
+    "cardDataDetection": {
+      "enabled": true,
+      "patterns": [
+        "\\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|6(?:011|5[0-9]{2})[0-9]{12})\\b",
+        "\\b[0-9]{3,4}\\b"
+      ],
+      "luhnCheck": true
+    },
+    "reporting": {
+      "frequency": "daily",
+      "recipients": ["security@company.com", "pci-compliance@company.com"],
+      "includeMetrics": true,
+      "includeRemediation": true,
+      "quarterlyAssessment": true
+    },
+    "retention": {
+      "auditLogs": "1 year",
+      "scanResults": "1 year",
+      "incidents": "3 years",
+      "assessments": "3 years"
+    },
+    "scanning": {
+      "internal": "weekly",
+      "external": "quarterly",
+      "asv": true,
+      "penetrationTesting": "annual"
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "id": "smart-rule-generator",
+  "name": "Smart Rule Generator",
+  "version": "1.0.0",
+  "description": "Intelligent rule generation plugin that analyzes project context and automatically generates appropriate security rules",
+  "author": "Claude Code AI Team",
+  "categories": ["generation"],
+  "capabilities": [
+    {
+      "type": "generate",
+      "name": "Context-Aware Rule Generation",
+      "inputs": ["template", "context", "project-analysis"],
+      "outputs": ["rules"]
+    }
+  ],
+  "permissions": [
+    "template:read",
+    "context:read",
+    "rules:generate"
+  ],
+  "dependencies": [],
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "analysisDepth": {
+        "type": "string",
+        "enum": ["basic", "comprehensive", "deep"],
+        "description": "Depth of project analysis",
+        "default": "comprehensive"
+      },
+      "includeFrameworkRules": {
+        "type": "boolean",
+        "description": "Generate framework-specific rules",
+        "default": true
+      },
+      "includeEnvironmentRules": {
+        "type": "boolean", 
+        "description": "Generate environment-specific rules",
+        "default": true
+      },
+      "complianceFrameworks": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["OWASP", "SOC2", "PCI_DSS", "HIPAA", "GDPR"]
+        },
+        "description": "Generate rules for specific compliance frameworks",
+        "default": []
+      },
+      "customRulesets": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "rules": {"type": "array", "items": {"type": "string"}},
+            "conditions": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "description": "Custom rulesets to apply conditionally",
+        "default": []
+      },
+      "riskTolerance": {
+        "type": "string",
+        "enum": ["low", "medium", "high"],
+        "description": "Risk tolerance level for rule generation",
+        "default": "medium"
+      }
+    }
+  },
+  "metadata": {
+    "homepage": "https://github.com/claude-code/smart-rule-generator",
+    "repository": "https://github.com/claude-code/smart-rule-generator.git",
+    "license": "MIT",
+    "keywords": ["rules", "generation", "ai", "security", "automation"]
+  }
+}

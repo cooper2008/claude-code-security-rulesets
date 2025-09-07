@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "deny": [
+      "execute_dangerous_commands",
+      "access_sensitive_files",
+      "Read(**/id_rsa*)"
+    ],
+    "allow": [
+      "read_files",
+      "write_files",
+      "run_tests"
+    ],
+    "ask": [
+      "install_packages",
+      "modify_system_settings"
+    ]
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "timestamp": 1757045796227,
+    "name": "Custom Security Policy (.ssh)",
+    "environment": "development",
+    "templateId": "development",
+    "scanResults": {
+      "scannedDirectory": "/Users/yiminguo/.ssh",
+      "scanDate": "2025-09-05T04:16:36.227Z",
+      "filesFound": 2,
+      "riskLevels": {
+        "CRITICAL": 2
+      },
+      "detectedFiles": [
+        {
+          "path": "id_rsa",
+          "type": "SSH/SSL Keys",
+          "risk": "CRITICAL"
+        },
+        {
+          "path": "id_rsa.pub",
+          "type": "SSH/SSL Keys",
+          "risk": "CRITICAL"
+        }
+      ]
+    }
+  }
+}

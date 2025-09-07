@@ -1,0 +1,389 @@
+{
+  "name": "claude-code-security",
+  "displayName": "Claude Code Security",
+  "description": "Real-time security validation for Claude Code configurations",
+  "version": "1.0.0",
+  "publisher": "claude-code",
+  "author": {
+    "name": "Claude Code Team",
+    "email": "support@claude-code.dev"
+  },
+  "homepage": "https://github.com/claude-code/security-extension",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/claude-code/security-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/claude-code/security-extension/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Linters",
+    "Other",
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "claude",
+    "security",
+    "validation",
+    "configuration",
+    "ai",
+    "safety"
+  ],
+  "icon": "resources/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onLanguage:json",
+    "workspaceContains:**/.claude/settings*.json",
+    "workspaceContains:**/claude-settings*.json",
+    "workspaceContains:**/*.claude.json",
+    "onCommand:claude-code.init"
+  ],
+  "main": "./out/extensions/vscode.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "claude-config",
+        "aliases": [
+          "Claude Configuration",
+          "claude-config"
+        ],
+        "extensions": [
+          ".claude.json"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "claude-config",
+        "scopeName": "source.claude-config",
+        "path": "./syntaxes/claude-config.tmGrammar.json"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          "**/.claude/settings*.json",
+          "**/claude-settings*.json",
+          "**/*.claude.json"
+        ],
+        "url": "./schemas/claude-config-schema.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "claude-code.validate",
+        "title": "Validate Configuration",
+        "category": "Claude Code",
+        "icon": "$(check)"
+      },
+      {
+        "command": "claude-code.validateAll",
+        "title": "Validate All Configurations",
+        "category": "Claude Code",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "claude-code.generateTemplate",
+        "title": "Generate Security Template",
+        "category": "Claude Code",
+        "icon": "$(file-add)"
+      },
+      {
+        "command": "claude-code.init",
+        "title": "Initialize Configuration",
+        "category": "Claude Code",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "claude-code.analyze",
+        "title": "Analyze Rules",
+        "category": "Claude Code",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "claude-code.sortRules",
+        "title": "Sort Rules",
+        "category": "Claude Code",
+        "icon": "$(sort-precedence)"
+      },
+      {
+        "command": "claude-code.optimize",
+        "title": "Optimize Configuration",
+        "category": "Claude Code",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "claude-code.findConflicts",
+        "title": "Find Conflicts",
+        "category": "Claude Code",
+        "icon": "$(warning)"
+      },
+      {
+        "command": "claude-code.format",
+        "title": "Format Configuration",
+        "category": "Claude Code",
+        "icon": "$(code)"
+      },
+      {
+        "command": "claude-code.export",
+        "title": "Export Configuration",
+        "category": "Claude Code",
+        "icon": "$(export)"
+      },
+      {
+        "command": "claude-code.import",
+        "title": "Import Configuration",
+        "category": "Claude Code",
+        "icon": "$(file-symlink-file)"
+      },
+      {
+        "command": "claude-code.showStatus",
+        "title": "Show Security Status",
+        "category": "Claude Code",
+        "icon": "$(info)"
+      },
+      {
+        "command": "claude-code.openWizard",
+        "title": "Configuration Wizard",
+        "category": "Claude Code",
+        "icon": "$(wand)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "claude-code.validate",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "editorTextFocus && resourceExtname == '.json'"
+      },
+      {
+        "command": "claude-code.format",
+        "key": "ctrl+shift+f",
+        "mac": "cmd+shift+f",
+        "when": "editorTextFocus && resourcePath =~ /\\.claude/"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourcePath =~ /\\.claude/ && editorLangId == json",
+          "command": "claude-code.validate",
+          "group": "claude-code@1"
+        },
+        {
+          "when": "resourcePath =~ /\\.claude/ && editorLangId == json",
+          "command": "claude-code.analyze",
+          "group": "claude-code@2"
+        },
+        {
+          "when": "resourcePath =~ /\\.claude/ && editorLangId == json",
+          "command": "claude-code.findConflicts",
+          "group": "claude-code@3"
+        }
+      ],
+      "editor/title": [
+        {
+          "when": "resourcePath =~ /\\.claude/ && editorLangId == json",
+          "command": "claude-code.validate",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "claude-code.validate",
+          "when": "resourcePath =~ /\\.claude/ || resourceExtname == '.claude.json'"
+        },
+        {
+          "command": "claude-code.validateAll",
+          "when": "workbenchState != empty"
+        },
+        {
+          "command": "claude-code.generateTemplate"
+        },
+        {
+          "command": "claude-code.init"
+        },
+        {
+          "command": "claude-code.analyze",
+          "when": "resourcePath =~ /\\.claude/ || resourceExtname == '.claude.json'"
+        },
+        {
+          "command": "claude-code.sortRules",
+          "when": "resourcePath =~ /\\.claude/ || resourceExtname == '.claude.json'"
+        },
+        {
+          "command": "claude-code.optimize",
+          "when": "resourcePath =~ /\\.claude/ || resourceExtname == '.claude.json'"
+        },
+        {
+          "command": "claude-code.findConflicts",
+          "when": "resourcePath =~ /\\.claude/ || resourceExtname == '.claude.json'"
+        },
+        {
+          "command": "claude-code.format",
+          "when": "resourcePath =~ /\\.claude/ || resourceExtname == '.claude.json'"
+        },
+        {
+          "command": "claude-code.export",
+          "when": "resourcePath =~ /\\.claude/ || resourceExtname == '.claude.json'"
+        },
+        {
+          "command": "claude-code.import"
+        },
+        {
+          "command": "claude-code.showStatus"
+        },
+        {
+          "command": "claude-code.openWizard"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Claude Code Security",
+      "properties": {
+        "claude-code.realTimeValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time validation of Claude Code configurations"
+        },
+        "claude-code.validationDelay": {
+          "type": "number",
+          "default": 500,
+          "minimum": 100,
+          "maximum": 5000,
+          "description": "Delay in milliseconds before running validation after changes"
+        },
+        "claude-code.showDecorations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show error and warning decorations in editor"
+        },
+        "claude-code.syntaxHighlighting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable syntax highlighting for Claude Code configurations"
+        },
+        "claude-code.quickFixes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable quick fixes for common issues"
+        },
+        "claude-code.statusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show security status in status bar"
+        },
+        "claude-code.securityLevel": {
+          "type": "string",
+          "enum": [
+            "permissive",
+            "balanced",
+            "strict"
+          ],
+          "default": "balanced",
+          "description": "Default security level for new configurations"
+        },
+        "claude-code.autoFormat": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically format configuration files on save"
+        },
+        "claude-code.conflictDetection": {
+          "type": "string",
+          "enum": [
+            "disabled",
+            "warnings",
+            "errors"
+          ],
+          "default": "errors",
+          "description": "How to handle rule conflicts"
+        },
+        "claude-code.templateSuggestions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show template suggestions when creating new configurations"
+        }
+      }
+    },
+    "snippets": [
+      {
+        "language": "json",
+        "path": "./snippets/claude-config-snippets.json"
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "claude-code",
+        "owner": "claude-code-security",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "typescript": "^4.9.4",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "vscode-languageserver": "^8.1.0",
+    "vscode-languageserver-textdocument": "^1.0.8",
+    "vscode-uri": "^3.0.7"
+  },
+  "extensionDependencies": [],
+  "badges": [
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/v/claude-code.claude-code-security",
+      "href": "https://marketplace.visualstudio.com/items?itemName=claude-code.claude-code-security",
+      "description": "Version"
+    },
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/i/claude-code.claude-code-security",
+      "href": "https://marketplace.visualstudio.com/items?itemName=claude-code.claude-code-security",
+      "description": "Installs"
+    },
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/r/claude-code.claude-code-security",
+      "href": "https://marketplace.visualstudio.com/items?itemName=claude-code.claude-code-security",
+      "description": "Rating"
+    }
+  ],
+  "qna": "https://github.com/claude-code/security-extension/discussions",
+  "sponsor": {
+    "url": "https://github.com/sponsors/claude-code"
+  }
+}

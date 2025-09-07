@@ -1,0 +1,219 @@
+# Claude Code Security Validation Pipeline
+# GitLab CI configuration for automated security validation
+
+image: node:18-alpine
+
+# Global variables
+variables:
+  CLAUDE_CODE_VERSION: "latest"
+  NODE_ENV: "production"
+  
+# Cache configuration
+cache:
+  key: claude-code-$CI_COMMIT_REF_SLUG
+  paths:
+    - node_modules/
+    - .npm/
+
+# Pipeline stages
+stages:
+  - prepare
+  - security-validation
+  - compliance-check
+  - deployment-gate
+
+# Before script - runs before each job
+before_script:
+  - apk add --no-cache git curl jq
+  - npm config set cache .npm
+  - npm install -g claude-code-security-rulesets@$CLAUDE_CODE_VERSION
+
+# Prepare stage
+prepare:
+  stage: prepare
+  script:
+    - echo "🔧 Preparing Claude Code security validation..."
+    - claude-code --version
+    - |
+      if [ ! -f .claude-code.json ]; then
+        echo "⚠️ No configuration found, generating default..."
+        claude-code init --template=production
+      fi
+  artifacts:
+    paths:
+      - .claude-code.json
+    expire_in: 1 hour
+
+# Security validation job
+security-validate:
+  stage: security-validation
+  dependencies:
+    - prepare
+  script:
+    - echo "🔍 Running security validation..."
+    - |
+      claude-code validate \
+        --config .claude-code.json \
+        --format json \
+        --output security-report.json \
+        --strict
+    - |
+      if [ $? -eq 0 ]; then
+        echo "✅ Security validation passed!"
+      else
+        echo "❌ Security validation failed!"
+        exit 1
+      fi
+  artifacts:
+    reports:
+      junit: security-report.xml
+    paths:
+      - security-report.json
+    expire_in: 30 days
+    when: always
+  only:
+    - merge_requests
+    - main
+    - master
+    - develop
+
+# Performance validation
+performance-check:
+  stage: security-validation
+  dependencies:
+    - prepare
+  script:
+    - echo "⚡ Running performance validation..."
+    - |
+      claude-code benchmark \
+        --config .claude-code.json \
+        --target-time 100ms \
+        --output performance-report.json
+    - |
+      # Check if performance targets are met
+      VALIDATION_TIME=$(jq -r '.performance.validationTime' security-report.json)
+      if [ "$VALIDATION_TIME" -gt 100 ]; then
+        echo "⚠️ Performance target not met: ${VALIDATION_TIME}ms > 100ms"
+      else
+        echo "✅ Performance target achieved: ${VALIDATION_TIME}ms"
+      fi
+  artifacts:
+    paths:
+      - performance-report.json
+    expire_in: 30 days
+  allow_failure: true
+
+# Compliance validation (runs on main branch)
+compliance-check:
+  stage: compliance-check
+  dependencies:
+    - security-validate
+  script:
+    - echo "📋 Running compliance validation..."
+    - |
+      claude-code compliance \
+        --framework SOC2 \
+        --config .claude-code.json \
+        --output compliance-report.json \
+        --generate-evidence
+    - |
+      # Generate compliance dashboard
+      claude-code dashboard \
+        --input compliance-report.json \
+        --output compliance-dashboard.html
+  artifacts:
+    paths:
+      - compliance-report.json
+      - compliance-dashboard.html
+    expire_in: 90 days
+  only:
+    - main
+    - master
+
+# Security gate for deployment
+deployment-gate:
+  stage: deployment-gate
+  dependencies:
+    - security-validate
+    - performance-check
+  script:
+    - echo "🚪 Checking deployment gate..."
+    - |
+      # Verify security validation passed
+      IS_VALID=$(jq -r '.isValid' security-report.json)
+      if [ "$IS_VALID" != "true" ]; then
+        echo "❌ Security validation failed - blocking deployment"
+        exit 1
+      fi
+    - |
+      # Check for critical errors
+      ERROR_COUNT=$(jq -r '.errors | length' security-report.json)
+      if [ "$ERROR_COUNT" -gt 0 ]; then
+        echo "❌ Critical errors found - blocking deployment"
+        jq -r '.errors[] | "Error: " + .message' security-report.json
+        exit 1
+      fi
+    - echo "✅ Security gate passed - deployment authorized"
+    - echo "🚀 Ready for production deployment"
+  only:
+    - main
+    - master
+
+# Notification job (runs on failure)
+notify-failure:
+  stage: .post
+  script:
+    - |
+      echo "🚨 Security validation pipeline failed!"
+      if [ ! -z "$SLACK_WEBHOOK_URL" ]; then
+        curl -X POST -H 'Content-type: application/json' \
+          --data "{
+            \"text\": \"🚨 Claude Code security validation failed in $CI_PROJECT_NAME\",
+            \"attachments\": [{
+              \"color\": \"danger\",
+              \"fields\": [{
+                \"title\": \"Branch\",
+                \"value\": \"$CI_COMMIT_REF_NAME\",
+                \"short\": true
+              }, {
+                \"title\": \"Commit\",
+                \"value\": \"$CI_COMMIT_SHORT_SHA\",
+                \"short\": true
+              }, {
+                \"title\": \"Pipeline\",
+                \"value\": \"$CI_PIPELINE_URL\",
+                \"short\": false
+              }]
+            }]
+          }" \
+          $SLACK_WEBHOOK_URL
+      fi
+  when: on_failure
+  only:
+    - main
+    - master
+    - merge_requests
+
+# Security report pages (GitLab Pages integration)
+pages:
+  stage: .post
+  dependencies:
+    - security-validate
+    - compliance-check
+  script:
+    - mkdir public
+    - |
+      if [ -f compliance-dashboard.html ]; then
+        cp compliance-dashboard.html public/index.html
+      fi
+    - |
+      if [ -f security-report.json ]; then
+        claude-code dashboard \
+          --input security-report.json \
+          --output public/security.html
+      fi
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

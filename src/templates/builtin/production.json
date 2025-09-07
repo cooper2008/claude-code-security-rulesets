@@ -1,0 +1,103 @@
+{
+  "id": "production",
+  "name": "Production Environment",
+  "category": "production", 
+  "rules": {
+    "permissions": {
+      "deny": [
+        "exec *",
+        "shell *",
+        "eval *",
+        "rm -rf *",
+        "format *",
+        "delete *",
+        "drop database",
+        "sudo *",
+        "chmod 777 *",
+        "git push --force",
+        "npm publish",
+        "docker run --privileged",
+        "curl *",
+        "wget *",
+        "ssh *",
+        "scp *",
+        "rsync *",
+        "env *",
+        "printenv",
+        "cat /etc/passwd",
+        "cat /etc/shadow",
+        "mount *",
+        "umount *",
+        "fdisk *",
+        "dd *"
+      ],
+      "ask": [
+        "git push",
+        "npm script *",
+        "docker run",
+        "network request {{allowedDomains}}",
+        "read config/*",
+        "write logs/*"
+      ],
+      "allow": [
+        "read {{appDir}}/*",
+        "write {{appDir}}/tmp/*",
+        "test *",
+        "build *",
+        "lint *",
+        "audit *"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1704067200000,
+      "name": "Production Template",
+      "environment": "production"
+    }
+  },
+  "description": "Strict security template for production environments. Denies dangerous operations and limits file system access to application directories only.",
+  "compliance": [],
+  "version": "1.0.0",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "tags": ["production", "strict", "secure"],
+  "isBuiltIn": true,
+  "parameters": [
+    {
+      "name": "appDir",
+      "type": "string", 
+      "description": "Application directory path",
+      "required": true,
+      "validation": {
+        "pattern": "^/[a-zA-Z0-9/_-]+$"
+      }
+    },
+    {
+      "name": "allowedDomains",
+      "type": "array",
+      "description": "List of allowed domains for network requests",
+      "required": false,
+      "defaultValue": ["api.company.com", "cdn.company.com"],
+      "validation": {
+        "minLength": 1
+      }
+    },
+    {
+      "name": "strictMode",
+      "type": "boolean",
+      "description": "Enable strictest security mode",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "auditLevel",
+      "type": "string",
+      "description": "Audit logging level",
+      "required": false,
+      "defaultValue": "info",
+      "validation": {
+        "enum": ["error", "warn", "info", "debug"]
+      }
+    }
+  ]
+}

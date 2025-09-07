@@ -1,0 +1,82 @@
+{
+  "id": "development",
+  "name": "Development Environment",
+  "category": "development",
+  "rules": {
+    "permissions": {
+      "deny": [
+        "rm -rf *",
+        "format *",
+        "delete *",
+        "drop database",
+        "sudo *",
+        "chmod 777 *"
+      ],
+      "ask": [
+        "exec *",
+        "shell *",
+        "git push --force",
+        "npm publish",
+        "docker run --privileged",
+        "network request *"
+      ],
+      "allow": [
+        "read *",
+        "write {{workspaceDir}}/*",
+        "test *",
+        "build *",
+        "lint *",
+        "git commit",
+        "npm install",
+        "npm run *",
+        "docker run"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1704067200000,
+      "name": "Development Template",
+      "environment": "development"
+    }
+  },
+  "description": "Permissive template for local development with essential security boundaries. Allows common development operations while blocking dangerous system-level commands.",
+  "compliance": [],
+  "version": "1.0.0",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "tags": ["development", "local", "permissive"],
+  "isBuiltIn": true,
+  "parameters": [
+    {
+      "name": "workspaceDir",
+      "type": "string",
+      "description": "Workspace directory path for file operations",
+      "required": false,
+      "defaultValue": "/workspace",
+      "validation": {
+        "pattern": "^/[a-zA-Z0-9/_-]+$"
+      }
+    },
+    {
+      "name": "allowExperimental",
+      "type": "boolean",
+      "description": "Allow experimental features and tools",
+      "required": false,
+      "defaultValue": false
+    },
+    {
+      "name": "testFrameworks",
+      "type": "array",
+      "description": "List of allowed testing frameworks",
+      "required": false,
+      "defaultValue": ["jest", "mocha", "vitest", "cypress"]
+    },
+    {
+      "name": "buildTools",
+      "type": "array",
+      "description": "List of allowed build tools",
+      "required": false,
+      "defaultValue": ["webpack", "vite", "rollup", "parcel", "esbuild"]
+    }
+  ]
+}

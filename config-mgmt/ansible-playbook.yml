@@ -1,0 +1,447 @@
+# Ansible Playbook for Claude Code Enterprise Security Configuration Deployment
+# Deploys security configurations to 1000+ developer machines
+---
+- name: Deploy Claude Code Security Configuration
+  hosts: claude_targets
+  become: yes
+  gather_facts: yes
+  serial: "{{ deployment_parallelism | default('20%') }}"
+  max_fail_percentage: 10
+  
+  vars:
+    claude_config_version: "{{ config_version | default('2.0') }}"
+    claude_config_environment: "{{ target_environment | default('production') }}"
+    claude_config_dir: "{{ claude_config_path | default('/etc/claude') }}"
+    claude_user_config_dir: "{{ user_home }}/.claude"
+    deployment_timeout: "{{ timeout | default(300) }}"
+    rollback_enabled: "{{ enable_rollback | default(true) }}"
+    health_check_enabled: "{{ enable_health_checks | default(true) }}"
+    notification_webhook: "{{ webhook_url | default('') }}"
+    
+    # Configuration templates by environment
+    config_templates:
+      development: "claude-security-dev.json.j2"
+      staging: "claude-security-staging.json.j2"
+      production: "claude-security-prod.json.j2"
+    
+    # Target groups for staged rollout
+    deployment_groups:
+      canary: "{{ groups['claude_canary'] | default([]) }}"
+      early_adopters: "{{ groups['claude_early'] | default([]) }}"
+      general: "{{ groups['claude_general'] | default([]) }}"
+
+  pre_tasks:
+    - name: Validate deployment prerequisites
+      block:
+        - name: Check if target is accessible
+          ping:
+          timeout: 10
+
+        - name: Verify sufficient disk space
+          assert:
+            that:
+              - ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first > 100000000
+            fail_msg: "Insufficient disk space on {{ inventory_hostname }}"
+
+        - name: Check if Claude Code is installed
+          command: which claude-code
+          register: claude_installed
+          failed_when: false
+          changed_when: false
+
+        - name: Verify network connectivity
+          uri:
+            url: "https://api.claude.ai/health"
+            method: GET
+            timeout: 10
+          delegate_to: localhost
+          run_once: true
+
+    - name: Create deployment tracking
+      set_fact:
+        deployment_id: "{{ ansible_date_time.epoch }}-{{ inventory_hostname | hash('md5') }}"
+        deployment_start_time: "{{ ansible_date_time.iso8601 }}"
+
+    - name: Send deployment start notification
+      uri:
+        url: "{{ notification_webhook }}"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          event: "deployment-started"
+          target: "{{ inventory_hostname }}"
+          deployment_id: "{{ deployment_id }}"
+          timestamp: "{{ deployment_start_time }}"
+      delegate_to: localhost
+      when: notification_webhook != ""
+      ignore_errors: yes
+
+  tasks:
+    # Backup existing configuration
+    - name: Create configuration backup
+      block:
+        - name: Check if existing configuration exists
+          stat:
+            path: "{{ claude_config_dir }}/settings.json"
+          register: existing_config
+
+        - name: Create backup directory
+          file:
+            path: "{{ claude_config_dir }}/backups"
+            state: directory
+            mode: '0755'
+            owner: root
+            group: root
+
+        - name: Backup existing configuration
+          copy:
+            src: "{{ claude_config_dir }}/settings.json"
+            dest: "{{ claude_config_dir }}/backups/settings.json.{{ ansible_date_time.epoch }}"
+            remote_src: yes
+            backup: yes
+          when: existing_config.stat.exists
+          register: config_backup
+
+        - name: Store backup path for rollback
+          set_fact:
+            backup_file: "{{ config_backup.backup_file | default('') }}"
+
+      rescue:
+        - name: Handle backup failure
+          debug:
+            msg: "Warning: Could not create backup of existing configuration"
+
+    # Install Claude Code if not present
+    - name: Install Claude Code
+      block:
+        - name: Download Claude Code installer
+          get_url:
+            url: "https://get.claude.ai/install.sh"
+            dest: "/tmp/claude-install.sh"
+            mode: '0755'
+          when: claude_installed.rc != 0
+
+        - name: Install Claude Code
+          shell: "/tmp/claude-install.sh --enterprise --version={{ claude_config_version }}"
+          when: claude_installed.rc != 0
+          register: claude_installation
+
+        - name: Verify Claude Code installation
+          command: claude-code --version
+          register: claude_version
+          changed_when: false
+
+      rescue:
+        - name: Handle installation failure
+          fail:
+            msg: "Failed to install Claude Code on {{ inventory_hostname }}"
+
+    # Deploy security configuration
+    - name: Deploy Claude Code security configuration
+      block:
+        - name: Ensure Claude Code configuration directory exists
+          file:
+            path: "{{ claude_config_dir }}"
+            state: directory
+            mode: '0755'
+            owner: root
+            group: root
+
+        - name: Template security configuration
+          template:
+            src: "{{ config_templates[claude_config_environment] }}"
+            dest: "{{ claude_config_dir }}/settings.json"
+            mode: '0644'
+            owner: root
+            group: root
+            backup: yes
+          register: config_deployment
+          notify:
+            - restart claude service
+            - validate configuration
+
+        - name: Set configuration metadata
+          blockinfile:
+            path: "{{ claude_config_dir }}/deployment.meta"
+            create: yes
+            mode: '0644'
+            block: |
+              DEPLOYMENT_ID={{ deployment_id }}
+              DEPLOYMENT_TIME={{ deployment_start_time }}
+              CONFIG_VERSION={{ claude_config_version }}
+              ENVIRONMENT={{ claude_config_environment }}
+              DEPLOYED_BY={{ ansible_user }}@{{ ansible_hostname }}
+              CONFIG_HASH={{ config_deployment.checksum }}
+
+        - name: Deploy user-specific configuration
+          template:
+            src: "{{ config_templates[claude_config_environment] }}"
+            dest: "{{ claude_user_config_dir }}/settings.json"
+            mode: '0644'
+            owner: "{{ item }}"
+            group: "{{ item }}"
+          become_user: "{{ item }}"
+          loop: "{{ developer_users | default(['developer']) }}"
+          when: deploy_user_configs | default(false)
+
+      rescue:
+        - name: Handle configuration deployment failure
+          set_fact:
+            deployment_failed: true
+          notify: rollback configuration
+
+    # Validate deployment
+    - name: Validate deployment
+      block:
+        - name: Validate configuration syntax
+          command: claude-code validate "{{ claude_config_dir }}/settings.json" --strict
+          register: config_validation
+          changed_when: false
+
+        - name: Test Claude Code with new configuration
+          command: claude-code --check-config
+          register: functionality_test
+          changed_when: false
+          timeout: 30
+
+        - name: Verify configuration permissions
+          stat:
+            path: "{{ claude_config_dir }}/settings.json"
+          register: config_perms
+
+        - name: Assert correct permissions
+          assert:
+            that:
+              - config_perms.stat.mode == '0644'
+              - config_perms.stat.pw_name == 'root'
+            fail_msg: "Configuration file has incorrect permissions"
+
+      rescue:
+        - name: Handle validation failure
+          set_fact:
+            validation_failed: true
+          notify: rollback configuration
+
+    # Health checks
+    - name: Perform health checks
+      block:
+        - name: Check Claude Code service status
+          systemd:
+            name: claude-code
+            state: started
+          register: service_status
+          when: claude_service_enabled | default(false)
+
+        - name: Verify configuration loading
+          shell: |
+            timeout 10 claude-code --test-config || exit 1
+          register: config_load_test
+          changed_when: false
+
+        - name: Test rule evaluation
+          shell: |
+            echo '{"action": "test"}' | claude-code --validate-action --config {{ claude_config_dir }}/settings.json
+          register: rule_test
+          changed_when: false
+
+        - name: Record health check results
+          set_fact:
+            health_check_passed: true
+            health_check_time: "{{ ansible_date_time.iso8601 }}"
+
+      rescue:
+        - name: Handle health check failure
+          set_fact:
+            health_check_failed: true
+          when: health_check_enabled
+
+      when: health_check_enabled
+
+    # Performance monitoring
+    - name: Setup monitoring
+      block:
+        - name: Install performance monitoring script
+          template:
+            src: "claude-monitor.sh.j2"
+            dest: "/usr/local/bin/claude-monitor"
+            mode: '0755'
+            owner: root
+            group: root
+
+        - name: Create monitoring cron job
+          cron:
+            name: "Claude Code Performance Monitor"
+            minute: "*/5"
+            job: "/usr/local/bin/claude-monitor >> /var/log/claude-monitor.log 2>&1"
+            user: root
+          when: enable_monitoring | default(true)
+
+  post_tasks:
+    - name: Record deployment completion
+      set_fact:
+        deployment_end_time: "{{ ansible_date_time.iso8601 }}"
+        deployment_success: "{{ not (deployment_failed | default(false) or validation_failed | default(false) or health_check_failed | default(false)) }}"
+
+    - name: Calculate deployment duration
+      set_fact:
+        deployment_duration: "{{ (ansible_date_time.epoch | int) - (deployment_start_time | to_datetime('%Y-%m-%dT%H:%M:%SZ') | int) }}"
+
+    - name: Update deployment metadata
+      blockinfile:
+        path: "{{ claude_config_dir }}/deployment.meta"
+        marker: "# {mark} DEPLOYMENT STATUS"
+        block: |
+          DEPLOYMENT_STATUS={{ 'SUCCESS' if deployment_success else 'FAILED' }}
+          DEPLOYMENT_END_TIME={{ deployment_end_time }}
+          DEPLOYMENT_DURATION={{ deployment_duration }}s
+          HEALTH_CHECK_PASSED={{ health_check_passed | default(false) }}
+          {% if backup_file %}
+          BACKUP_FILE={{ backup_file }}
+          {% endif %}
+
+    - name: Send completion notification
+      uri:
+        url: "{{ notification_webhook }}"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          event: "{{ 'deployment-completed' if deployment_success else 'deployment-failed' }}"
+          target: "{{ inventory_hostname }}"
+          deployment_id: "{{ deployment_id }}"
+          duration: "{{ deployment_duration }}"
+          success: "{{ deployment_success }}"
+          timestamp: "{{ deployment_end_time }}"
+      delegate_to: localhost
+      when: notification_webhook != ""
+      ignore_errors: yes
+
+    - name: Log deployment result
+      debug:
+        msg: |
+          Deployment {{ 'COMPLETED' if deployment_success else 'FAILED' }} on {{ inventory_hostname }}
+          Deployment ID: {{ deployment_id }}
+          Duration: {{ deployment_duration }}s
+          Health Checks: {{ 'PASSED' if health_check_passed | default(false) else 'FAILED' }}
+
+  handlers:
+    - name: restart claude service
+      systemd:
+        name: claude-code
+        state: restarted
+      when: claude_service_enabled | default(false)
+
+    - name: validate configuration
+      command: claude-code validate "{{ claude_config_dir }}/settings.json"
+      register: validation_result
+      changed_when: false
+
+    - name: rollback configuration
+      block:
+        - name: Restore from backup
+          copy:
+            src: "{{ backup_file }}"
+            dest: "{{ claude_config_dir }}/settings.json"
+            remote_src: yes
+          when: backup_file is defined and backup_file != ""
+
+        - name: Restart service after rollback
+          systemd:
+            name: claude-code
+            state: restarted
+          when: claude_service_enabled | default(false)
+
+        - name: Send rollback notification
+          uri:
+            url: "{{ notification_webhook }}"
+            method: POST
+            headers:
+              Content-Type: "application/json"
+            body_format: json
+            body:
+              event: "rollback-completed"
+              target: "{{ inventory_hostname }}"
+              deployment_id: "{{ deployment_id }}"
+              timestamp: "{{ ansible_date_time.iso8601 }}"
+          delegate_to: localhost
+          when: notification_webhook != ""
+          ignore_errors: yes
+
+      when: rollback_enabled
+
+# Deployment strategy playbooks for different rollout types
+- name: Canary Deployment Strategy
+  hosts: claude_canary
+  serial: 1
+  max_fail_percentage: 0
+  vars:
+    deployment_strategy: "canary"
+  include: claude-deploy-main.yml
+  when: deployment_type | default('standard') == 'canary'
+
+- name: Blue-Green Deployment Strategy  
+  hosts: claude_targets
+  strategy: linear
+  vars:
+    deployment_strategy: "blue-green"
+  tasks:
+    - name: Deploy to Blue Environment
+      include_tasks: blue-green-deploy.yml
+      vars:
+        target_env: "blue"
+    
+    - name: Validate Blue Environment
+      include_tasks: blue-green-validate.yml
+      
+    - name: Switch Traffic to Blue
+      include_tasks: blue-green-switch.yml
+      
+    - name: Cleanup Green Environment
+      include_tasks: blue-green-cleanup.yml
+
+  when: deployment_type | default('standard') == 'blue-green'
+
+# Emergency rollback playbook
+- name: Emergency Rollback
+  hosts: claude_targets
+  become: yes
+  serial: "50%"
+  vars:
+    emergency_rollback: true
+    
+  tasks:
+    - name: Stop Claude Code service
+      systemd:
+        name: claude-code
+        state: stopped
+      when: claude_service_enabled | default(false)
+      ignore_errors: yes
+
+    - name: Find latest backup
+      find:
+        paths: "{{ claude_config_dir }}/backups"
+        patterns: "settings.json.*"
+        age_stamp: mtime
+      register: backup_files
+
+    - name: Restore latest backup
+      copy:
+        src: "{{ (backup_files.files | sort(attribute='mtime') | last).path }}"
+        dest: "{{ claude_config_dir }}/settings.json"
+        remote_src: yes
+      when: backup_files.files | length > 0
+
+    - name: Restart Claude Code service
+      systemd:
+        name: claude-code
+        state: started
+      when: claude_service_enabled | default(false)
+
+    - name: Verify rollback
+      command: claude-code --check-config
+      register: rollback_verification
+
+  when: emergency_rollback | default(false)

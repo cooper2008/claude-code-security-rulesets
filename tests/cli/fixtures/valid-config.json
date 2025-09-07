@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "deny": [
+      "hardcoded-secrets",
+      "sql-injection",
+      "xss-vulnerabilities"
+    ],
+    "allow": [
+      "debug-logging",
+      "test-utilities"
+    ],
+    "ask": [
+      "external-api-calls",
+      "file-system-access"
+    ]
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "timestamp": 1704067200000,
+    "organization": "test-org",
+    "name": "Test Security Configuration",
+    "environment": "development"
+  }
+}

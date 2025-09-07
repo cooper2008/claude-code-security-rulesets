@@ -1,0 +1,56 @@
+{
+  "id": "security-validator",
+  "name": "Advanced Security Validator",
+  "version": "1.0.0",
+  "description": "Comprehensive security validation plugin that checks for common vulnerabilities and security best practices",
+  "author": "Claude Code Security Team",
+  "categories": ["validation"],
+  "capabilities": [
+    {
+      "type": "validate",
+      "name": "Security Rule Validation",
+      "inputs": ["template", "context"],
+      "outputs": ["validation-result"]
+    }
+  ],
+  "permissions": [
+    "template:read",
+    "template:validate",
+    "context:read"
+  ],
+  "dependencies": [],
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "strictMode": {
+        "type": "boolean",
+        "description": "Enable strict security validation",
+        "default": true
+      },
+      "checkDeprecated": {
+        "type": "boolean",
+        "description": "Check for deprecated security patterns",
+        "default": true
+      },
+      "customPatterns": {
+        "type": "array",
+        "description": "Custom security patterns to validate",
+        "items": {
+          "type": "object",
+          "properties": {
+            "pattern": {"type": "string"},
+            "severity": {"type": "string", "enum": ["info", "warning", "error", "critical"]},
+            "message": {"type": "string"}
+          }
+        },
+        "default": []
+      }
+    }
+  },
+  "metadata": {
+    "homepage": "https://github.com/claude-code/security-validator",
+    "repository": "https://github.com/claude-code/security-validator.git",
+    "license": "MIT",
+    "keywords": ["security", "validation", "owasp", "vulnerabilities"]
+  }
+}

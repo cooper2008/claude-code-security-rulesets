@@ -1,0 +1,316 @@
+// Claude Code Security Validation Pipeline
+// Jenkins Pipeline for automated security validation and compliance checking
+
+pipeline {
+    agent any
+    
+    environment {
+        NODE_VERSION = '18'
+        CLAUDE_CODE_VERSION = 'latest'
+    }
+    
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 30, unit: 'MINUTES')
+        timestamps()
+        ansiColor('xterm')
+    }
+    
+    triggers {
+        // Run nightly security audit
+        cron('H 2 * * *')
+    }
+    
+    stages {
+        stage('Prepare Environment') {
+            steps {
+                script {
+                    echo "🔧 Setting up Claude Code environment..."
+                    
+                    // Install Node.js
+                    def nodeJS = tool name: "NodeJS-${NODE_VERSION}", type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+                    env.PATH = "${nodeJS}/bin:${env.PATH}"
+                    
+                    // Verify Node.js installation
+                    sh 'node --version'
+                    sh 'npm --version'
+                    
+                    // Install Claude Code
+                    sh "npm install -g claude-code-security-rulesets@${CLAUDE_CODE_VERSION}"
+                    sh 'claude-code --version'
+                }
+            }
+        }
+        
+        stage('Configuration Check') {
+            steps {
+                script {
+                    echo "📋 Checking Claude Code configuration..."
+                    
+                    if (!fileExists('.claude-code.json')) {
+                        echo "⚠️ No configuration found, generating default..."
+                        sh 'claude-code init --template=production --yes'
+                    }
+                    
+                    // Validate configuration syntax
+                    sh '''
+                        claude-code config validate \
+                          --config .claude-code.json \
+                          --strict
+                    '''
+                }
+            }
+        }
+        
+        stage('Security Validation') {
+            parallel {
+                stage('Core Security') {
+                    steps {
+                        script {
+                            echo "🔍 Running core security validation..."
+                            
+                            sh '''
+                                claude-code validate \
+                                  --config .claude-code.json \
+                                  --format json \
+                                  --output security-core-report.json \
+                                  --strict \
+                                  --include-performance
+                            '''
+                            
+                            // Archive the report
+                            archiveArtifacts artifacts: 'security-core-report.json', allowEmptyArchive: false
+                        }
+                    }
+                    post {
+                        always {
+                            // Publish test results if available
+                            script {
+                                if (fileExists('security-core-report.json')) {
+                                    def report = readJSON file: 'security-core-report.json'
+                                    if (!report.isValid) {
+                                        currentBuild.result = 'FAILURE'
+                                        error "Core security validation failed with ${report.errors.size()} errors"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                stage('Compliance Check') {
+                    when {
+                        anyOf {
+                            branch 'main'
+                            branch 'master'
+                            triggeredBy 'TimerTrigger'
+                        }
+                    }
+                    steps {
+                        script {
+                            echo "📋 Running compliance validation..."
+                            
+                            sh '''
+                                claude-code compliance \
+                                  --framework SOC2 \
+                                  --config .claude-code.json \
+                                  --output compliance-report.json \
+                                  --generate-evidence \
+                                  --include-recommendations
+                            '''
+                            
+                            // Generate compliance dashboard
+                            sh '''
+                                claude-code dashboard \
+                                  --input compliance-report.json \
+                                  --output compliance-dashboard.html \
+                                  --template enterprise
+                            '''
+                            
+                            archiveArtifacts artifacts: 'compliance-report.json,compliance-dashboard.html', allowEmptyArchive: false
+                        }
+                    }
+                }
+                
+                stage('Performance Benchmark') {
+                    steps {
+                        script {
+                            echo "⚡ Running performance benchmarks..."
+                            
+                            sh '''
+                                claude-code benchmark \
+                                  --config .claude-code.json \
+                                  --target-time 100ms \
+                                  --memory-limit 50MB \
+                                  --output performance-benchmark.json
+                            '''
+                            
+                            archiveArtifacts artifacts: 'performance-benchmark.json', allowEmptyArchive: false
+                            
+                            // Check performance targets
+                            script {
+                                def benchmark = readJSON file: 'performance-benchmark.json'
+                                if (benchmark.performance?.validationTime > 100) {
+                                    echo "⚠️ Performance target not met: ${benchmark.performance.validationTime}ms > 100ms"
+                                    // Mark as unstable but don't fail
+                                    currentBuild.result = 'UNSTABLE'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Security Report') {
+            steps {
+                script {
+                    echo "📊 Generating consolidated security report..."
+                    
+                    sh '''
+                        claude-code merge-reports \
+                          --input-pattern "*-report.json" \
+                          --output consolidated-security-report.json \
+                          --include-summary
+                    '''
+                    
+                    // Generate executive summary
+                    sh '''
+                        claude-code executive-summary \
+                          --input consolidated-security-report.json \
+                          --output executive-summary.md \
+                          --format markdown
+                    '''
+                    
+                    archiveArtifacts artifacts: 'consolidated-security-report.json,executive-summary.md', allowEmptyArchive: false
+                    
+                    // Publish HTML reports
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: '.',
+                        reportFiles: 'compliance-dashboard.html',
+                        reportName: 'Security Dashboard'
+                    ])
+                }
+            }
+        }
+        
+        stage('Deployment Gate') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
+            }
+            steps {
+                script {
+                    echo "🚪 Evaluating deployment gate..."
+                    
+                    def securityReport = readJSON file: 'consolidated-security-report.json'
+                    
+                    if (!securityReport.isValid) {
+                        error "❌ Security validation failed - deployment blocked"
+                    }
+                    
+                    if (securityReport.errors && securityReport.errors.size() > 0) {
+                        error "❌ Critical security errors found - deployment blocked"
+                    }
+                    
+                    echo "✅ Security gate passed - deployment authorized"
+                    echo "🚀 Ready for production deployment"
+                    
+                    // Set deployment approval flag
+                    env.DEPLOYMENT_APPROVED = 'true'
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                echo "🧹 Cleaning up artifacts..."
+                
+                // Clean up temporary files
+                sh 'rm -f *.tmp'
+                
+                // Archive all reports
+                archiveArtifacts artifacts: '*.json,*.html,*.md', allowEmptyArchive: true, fingerprint: true
+            }
+        }
+        
+        success {
+            script {
+                echo "✅ Pipeline completed successfully!"
+                
+                emailext (
+                    subject: "✅ Claude Code Security Validation Passed - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """
+                    <h2>Security Validation Successful</h2>
+                    <p>The Claude Code security validation pipeline has completed successfully.</p>
+                    <ul>
+                        <li><strong>Job:</strong> ${env.JOB_NAME}</li>
+                        <li><strong>Build:</strong> #${env.BUILD_NUMBER}</li>
+                        <li><strong>Branch:</strong> ${env.BRANCH_NAME}</li>
+                        <li><strong>Commit:</strong> ${env.GIT_COMMIT}</li>
+                    </ul>
+                    <p><a href="${env.BUILD_URL}">View Build Details</a></p>
+                    """,
+                    mimeType: 'text/html',
+                    to: "${env.DEFAULT_RECIPIENTS}"
+                )
+            }
+        }
+        
+        failure {
+            script {
+                echo "❌ Pipeline failed!"
+                
+                emailext (
+                    subject: "❌ Claude Code Security Validation Failed - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """
+                    <h2>Security Validation Failed</h2>
+                    <p>The Claude Code security validation pipeline has failed.</p>
+                    <ul>
+                        <li><strong>Job:</strong> ${env.JOB_NAME}</li>
+                        <li><strong>Build:</strong> #${env.BUILD_NUMBER}</li>
+                        <li><strong>Branch:</strong> ${env.BRANCH_NAME}</li>
+                        <li><strong>Commit:</strong> ${env.GIT_COMMIT}</li>
+                    </ul>
+                    <p><strong>Please review the security errors and fix them before proceeding.</strong></p>
+                    <p><a href="${env.BUILD_URL}">View Build Details</a></p>
+                    """,
+                    mimeType: 'text/html',
+                    to: "${env.DEFAULT_RECIPIENTS}",
+                    attachLog: true
+                )
+            }
+        }
+        
+        unstable {
+            script {
+                echo "⚠️ Pipeline completed with warnings!"
+                
+                emailext (
+                    subject: "⚠️ Claude Code Security Validation Unstable - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """
+                    <h2>Security Validation Completed with Warnings</h2>
+                    <p>The Claude Code security validation pipeline completed but with some warnings.</p>
+                    <ul>
+                        <li><strong>Job:</strong> ${env.JOB_NAME}</li>
+                        <li><strong>Build:</strong> #${env.BUILD_NUMBER}</li>
+                        <li><strong>Branch:</strong> ${env.BRANCH_NAME}</li>
+                        <li><strong>Commit:</strong> ${env.GIT_COMMIT}</li>
+                    </ul>
+                    <p><strong>Please review the warnings to improve security posture.</strong></p>
+                    <p><a href="${env.BUILD_URL}">View Build Details</a></p>
+                    """,
+                    mimeType: 'text/html',
+                    to: "${env.DEFAULT_RECIPIENTS}"
+                )
+            }
+        }
+    }
+}

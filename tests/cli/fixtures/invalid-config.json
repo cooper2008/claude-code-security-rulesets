@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "deny": "",
+    "allow": null,
+    "ask": []
+  },
+  "metadata": {
+    "version": "invalid-version-format",
+    "timestamp": "invalid-timestamp"
+  }
+}

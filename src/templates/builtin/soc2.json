@@ -1,0 +1,126 @@
+{
+  "id": "soc2",
+  "name": "SOC 2 Compliance",
+  "category": "compliance",
+  "rules": {
+    "permissions": {
+      "deny": [
+        "exec *",
+        "shell *",
+        "eval *",
+        "rm -rf *",
+        "format *",
+        "delete *",
+        "drop database",
+        "sudo *",
+        "chmod 777 *",
+        "git push --force",
+        "npm publish",
+        "docker run --privileged",
+        "curl *",
+        "wget *",
+        "ssh *",
+        "scp *",
+        "rsync *",
+        "env *",
+        "printenv",
+        "cat /etc/passwd",
+        "cat /etc/shadow",
+        "access customer data without audit",
+        "modify audit logs",
+        "disable logging",
+        "bypass authentication",
+        "export sensitive data",
+        "print customer data",
+        "email customer data"
+      ],
+      "ask": [
+        "git push",
+        "npm script *",
+        "docker run",
+        "network request *",
+        "read customer data",
+        "access production data",
+        "modify system config",
+        "backup data",
+        "restore data",
+        "access database",
+        "run reports"
+      ],
+      "allow": [
+        "read approved files",
+        "write approved files",
+        "test *",
+        "build *",
+        "lint *",
+        "audit *",
+        "log actions",
+        "read audit logs",
+        "encrypt data",
+        "decrypt approved data",
+        "validate input",
+        "sanitize data"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1704067200000,
+      "name": "SOC 2 Compliance Template",
+      "environment": "production"
+    }
+  },
+  "description": "SOC 2 Type II compliant security policies focusing on Security, Availability, Processing Integrity, Confidentiality, and Privacy trust services criteria.",
+  "compliance": ["SOC2"],
+  "version": "1.0.0",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z", 
+  "tags": ["soc2", "compliance", "audit", "security"],
+  "isBuiltIn": true,
+  "parameters": [
+    {
+      "name": "auditEnabled",
+      "type": "boolean",
+      "description": "Enable comprehensive audit logging",
+      "required": true,
+      "defaultValue": true
+    },
+    {
+      "name": "retentionDays",
+      "type": "number",
+      "description": "Audit log retention period in days",
+      "required": false,
+      "defaultValue": 365,
+      "validation": {
+        "min": 90,
+        "max": 2555
+      }
+    },
+    {
+      "name": "dataClassification",
+      "type": "string",
+      "description": "Data classification level",
+      "required": false,
+      "defaultValue": "confidential",
+      "validation": {
+        "enum": ["public", "internal", "confidential", "restricted"]
+      }
+    },
+    {
+      "name": "encryptionRequired",
+      "type": "boolean",
+      "description": "Require data encryption at rest and in transit",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "accessReviewFrequency",
+      "type": "string",
+      "description": "Frequency of access reviews",
+      "required": false,
+      "defaultValue": "quarterly",
+      "validation": {
+        "enum": ["monthly", "quarterly", "semi-annually", "annually"]
+      }
+    }
+  ]
+}

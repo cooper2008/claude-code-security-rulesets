@@ -1,0 +1,25 @@
+{
+  "security-baseline": {
+    "parameters": {
+      "severity_threshold": "high",
+      "include_owasp": true,
+      "custom_patterns": [],
+      "environments": ["production"]
+    }
+  },
+  "enterprise-security": {
+    "parameters": {
+      "compliance_framework": "SOC2",
+      "audit_level": "detailed",
+      "data_classification": ["confidential", "restricted"],
+      "retention_days": 90
+    }
+  },
+  "development-rules": {
+    "parameters": {
+      "debug_mode": false,
+      "performance_checks": true,
+      "code_coverage_threshold": 80
+    }
+  }
+}

@@ -1,0 +1,312 @@
+{
+  "id": "hipaa",
+  "name": "HIPAA Compliance",
+  "version": "1.0.0",
+  "category": "compliance",
+  "description": "HIPAA compliance template - strict PHI protection for healthcare applications",
+  "compliance": ["HIPAA"],
+  "tags": ["hipaa", "compliance", "healthcare", "phi", "medical"],
+  "isBuiltIn": true,
+  "createdAt": "2024-01-15T00:00:00Z",
+  "updatedAt": "2024-01-15T00:00:00Z",
+  "rules": {
+    "permissions": {
+      "deny": [
+        // === HIPAA PHI PROTECTION (164.312) ===
+        "**/phi*/**",
+        "**/PHI*/**",
+        "**/patient*/**",
+        "**/Patient*/**",
+        "**/medical*/**",
+        "**/Medical*/**",
+        "**/health*/**",
+        "**/Health*/**",
+        "**/clinical*/**",
+        "**/Clinical*/**",
+        "**/*phi*",
+        "**/*PHI*",
+        "**/*patient*",
+        "**/*Patient*",
+        "**/*medical*",
+        "**/*Medical*",
+        "**/*health*",
+        "**/*Health*",
+        "**/*clinical*",
+        "**/*Clinical*",
+        
+        // === GENERIC SECRET PROTECTION ===
+        "**/secret*/**",
+        "**/credential*/**",
+        "**/private*/**",
+        "**/confidential*/**",
+        "**/auth*/**",
+        "**/*secret*",
+        "**/*password*",
+        "**/*token*",
+        "**/*key*",
+        "**/*credential*",
+        "**/*private*",
+        "**/*auth*",
+        
+        // === HIPAA ACCESS CONTROL (164.312a) ===
+        "**/.ssh/**",
+        "/etc/passwd",
+        "/etc/shadow",
+        "/etc/group",
+        "/etc/sudoers",
+        "/root/**",
+        "Execute(sudo)",
+        "Execute(su)",
+        "Execute(passwd)",
+        "Execute(usermod)",
+        "Execute(useradd)",
+        "Execute(userdel)",
+        "Execute(groupadd)",
+        "Execute(groupmod)",
+        
+        // === HIPAA INFORMATION INTEGRITY (164.312c) ===
+        "Write(/etc/**)",
+        "Write(/usr/**)",
+        "Write(/bin/**)",
+        "Write(/sbin/**)",
+        "Execute(rm -rf /*)",
+        "Execute(mkfs.*)",
+        "Execute(dd)",
+        "Execute(mount)",
+        "Execute(systemctl)",
+        "Execute(service)",
+        
+        // === DATABASE PHI PROTECTION ===
+        "**/.env*",
+        "**/database*/**/*password*",
+        "**/db*/**/*password*",
+        "**/*connection*string*",
+        "**/.pgpass",
+        "**/my.cnf",
+        "**/.my.cnf",
+        "**/mongodb.conf",
+        "**/redis.conf",
+        "**/database*/**/*phi*",
+        "**/db*/**/*patient*",
+        "**/data*/**/*medical*",
+        
+        // === HIPAA BACKUP CONTROLS ===
+        "**/backup*/**/*phi*",
+        "**/backup*/**/*patient*",
+        "**/backup*/**/*medical*",
+        "**/backup*/**/*health*",
+        "**/*.backup*phi*",
+        "**/*.bak*patient*",
+        
+        // === CLOUD PHI PROTECTION ===
+        "**/.aws/**",
+        "**/.azure/**",
+        "**/.gcp/**",
+        "**/.kube/config",
+        "**/.docker/config.json",
+        "**/*service-account*.json",
+        "**/cloud*/**/*phi*",
+        "**/cloud*/**/*patient*",
+        "**/cloud*/**/*medical*",
+        
+        // === CERTIFICATE/ENCRYPTION KEYS ===
+        "**/*.pem",
+        "**/*.key",
+        "**/*.crt",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/*.jks",
+        "**/*.keystore",
+        
+        // === HIPAA TRANSMISSION SECURITY (164.312e) ===
+        "Network(*.internal)",
+        "Network(*.local)",
+        "Network(*:22)",
+        "Network(*:3389)",
+        "Network(*:5432)",
+        "Network(*:3306)",
+        "Network(*:27017)",
+        "Network(*:6379)",
+        "Network(*:80)", // Unencrypted HTTP
+        
+        // === LOG FILES WITH PHI ===
+        "**/log*/**/*phi*",
+        "**/log*/**/*patient*",
+        "**/log*/**/*medical*",
+        "**/log*/**/*health*",
+        "**/logs/**/*phi*",
+        "**/logs/**/*patient*",
+        "**/logs/**/*medical*",
+        "**/logs/**/*auth*",
+        "**/logs/**/*secure*",
+        
+        // === TEMP FILES WITH PHI ===
+        "**/tmp/**/*phi*",
+        "**/tmp/**/*patient*",
+        "**/tmp/**/*medical*",
+        "**/temp/**/*phi*",
+        "**/temp/**/*patient*",
+        "**/temp/**/*medical*",
+        
+        // === CI/CD WITH PHI DATA ===
+        "**/.github/workflows/**",
+        "**/.circleci/config.yml",
+        "**/.gitlab-ci.yml",
+        "**/jenkins/credentials*",
+        "**/deploy_key*",
+        
+        // === INFRASTRUCTURE AS CODE WITH SECRETS ===
+        "**/terraform.tfvars",
+        "**/*.tfvars",
+        "**/terraform.tfstate",
+        "**/.terraform/**",
+        
+        // === PACKAGE MANAGER CREDENTIALS ===
+        "**/.npmrc",
+        "**/.pypirc",
+        "**/pip.conf",
+        "**/.gemrc",
+        
+        // === DEVELOPMENT TOOLS WITH PHI ACCESS ===
+        "**/.*rc",
+        "**/.profile",
+        "**/.bash_profile",
+        "**/.bashrc",
+        "**/.zshrc"
+      ],
+      
+      "ask": [
+        // === HIPAA AUDIT CONTROLS (164.312b) ===
+        "Execute(git push)",
+        "Execute(npm publish)",
+        "Execute(docker push)",
+        "Execute(kubectl apply)",
+        
+        // === PHI DATA OPERATIONS (REQUIRES AUTHORIZATION) ===
+        "Read(**/data/**)",
+        "Write(**/data/**)",
+        "Read(**/patient*/**)",
+        "Write(**/patient*/**)",
+        "Read(**/medical*/**)",
+        "Write(**/medical*/**)",
+        
+        // === DATABASE OPERATIONS WITH PHI ===
+        "Execute(mysql)",
+        "Execute(psql)",
+        "Execute(mongo)",
+        "Execute(redis-cli)",
+        
+        // === BACKUP OPERATIONS ===
+        "Execute(backup)",
+        "Execute(restore)",
+        
+        // === CONFIGURATION CHANGES ===
+        "Write(**/config/**)",
+        "Write(**/package.json)",
+        "Write(**/requirements.txt)",
+        "Write(**/Dockerfile)",
+        
+        // === LOG ACCESS (AUDIT TRAIL REQUIRED) ===
+        "Read(**/logs/**)",
+        "Write(**/logs/**)",
+        
+        // === NETWORK ACCESS (ENCRYPTION REQUIRED) ===
+        "Network(*)",
+        
+        // === SYSTEM MONITORING ===
+        "Execute(top)",
+        "Execute(ps)",
+        "Execute(netstat)",
+        "Execute(ss)",
+        
+        // === ENCRYPTION OPERATIONS ===
+        "Execute(openssl)",
+        "Execute(gpg)",
+        
+        // === CONTAINER OPERATIONS ===
+        "Execute(docker)",
+        "Execute(kubectl)"
+      ],
+      
+      "allow": [
+        // === NORMAL DEVELOPMENT (NON-PHI) ===
+        "Read(/project/public/**)",
+        "Write(/project/src/**)",
+        "Write(/project/dist/**)",
+        "Write(/project/build/**)",
+        
+        // === VERSION CONTROL (AUDIT LOGGED) ===
+        "Execute(git add)",
+        "Execute(git commit)",
+        "Execute(git status)",
+        "Execute(git diff)",
+        "Execute(git log)",
+        
+        // === APPROVED DEVELOPMENT TOOLS ===
+        "Execute(npm)",
+        "Execute(node)",
+        "Execute(python)",
+        "Execute(java)",
+        
+        // === SECURE NETWORKS ONLY (HTTPS) ===
+        "Network(registry.npmjs.org)",
+        "Network(pypi.org)",
+        "Network(github.com)",
+        "Network(api.github.com)",
+        
+        // === READ-ONLY OPERATIONS ===
+        "Read(/project/README.md)",
+        "Read(/project/LICENSE)",
+        "Read(/project/package.json)"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1705276800000,
+      "templateId": "hipaa",
+      "name": "HIPAA Compliance Security",
+      "environment": "production",
+      "organization": "healthcare"
+    }
+  },
+  "parameters": [
+    {
+      "name": "phiDataPath",
+      "type": "string",
+      "description": "Path where PHI data is stored (will be strictly protected)",
+      "required": true,
+      "defaultValue": "/data/phi"
+    },
+    {
+      "name": "auditLogPath",
+      "type": "string",
+      "description": "Path for HIPAA audit log storage",
+      "required": true,
+      "defaultValue": "/var/log/hipaa-audit"
+    },
+    {
+      "name": "encryptionRequired",
+      "type": "boolean",
+      "description": "Require encryption for all data operations",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "coveredEntity",
+      "type": "string",
+      "description": "Type of HIPAA covered entity",
+      "required": false,
+      "defaultValue": "healthcare-provider",
+      "validation": {
+        "enum": ["healthcare-provider", "health-plan", "healthcare-clearinghouse", "business-associate"]
+      }
+    },
+    {
+      "name": "minimumNecessary",
+      "type": "boolean",
+      "description": "Enforce minimum necessary standard for PHI access",
+      "required": false,
+      "defaultValue": true
+    }
+  ]
+}

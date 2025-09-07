@@ -1,0 +1,45 @@
+{
+  "environments": {
+    "development": {
+      "endpoint": "https://dev-claude.internal.org",
+      "authentication": {
+        "type": "api-key",
+        "key_file": ".claude-dev-key"
+      },
+      "deployment_strategy": "direct",
+      "rollback_enabled": false
+    },
+    "staging": {
+      "endpoint": "https://staging-claude.internal.org",
+      "authentication": {
+        "type": "oauth",
+        "client_id": "staging-client",
+        "scopes": ["read", "write"]
+      },
+      "deployment_strategy": "blue-green",
+      "rollback_enabled": true,
+      "approval_required": true
+    },
+    "production": {
+      "endpoint": "https://claude.company.com",
+      "authentication": {
+        "type": "oauth",
+        "client_id": "prod-client",
+        "scopes": ["read", "write", "admin"]
+      },
+      "deployment_strategy": "canary",
+      "rollback_enabled": true,
+      "approval_required": true,
+      "backup_retention_days": 30
+    }
+  },
+  "deployment_history": [
+    {
+      "id": "deploy-123",
+      "environment": "staging",
+      "timestamp": "2024-01-01T12:00:00.000Z",
+      "status": "success",
+      "version": "1.0.0"
+    }
+  ]
+}

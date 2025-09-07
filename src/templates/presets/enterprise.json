@@ -1,0 +1,242 @@
+{
+  "name": "enterprise",
+  "description": "Comprehensive security template for enterprise environments",
+  "version": "1.0.0",
+  "author": "Claude Code Security",
+  "lastModified": "2025-01-04",
+  "compatibility": {
+    "minVersion": "1.0.0",
+    "platforms": ["windows", "macos", "linux"]
+  },
+  "metadata": {
+    "category": "organization",
+    "severity": "high",
+    "useCase": "Enterprise-wide security policies",
+    "complianceFrameworks": ["SOC2", "ISO27001", "NIST"],
+    "tags": ["enterprise", "comprehensive", "multi-team"]
+  },
+  "rules": {
+    "credentials_comprehensive": {
+      "description": "Block all forms of credentials",
+      "patterns": [
+        "**/secret*/**",
+        "**/credential*/**",
+        "**/private*/**",
+        "**/secure*/**",
+        "**/confidential*/**",
+        "**/*password*",
+        "**/*passwd*",
+        "**/*token*",
+        "**/*apikey*",
+        "**/*api_key*",
+        "**/*api-key*",
+        "**/*access_key*",
+        "**/*secret_key*",
+        "**/*client_secret*",
+        "**/*auth*key*",
+        "**/*sign*key*",
+        "**/*encrypt*key*",
+        "**/*decrypt*key*"
+      ],
+      "rationale": "Enterprise policy prohibits credentials in code",
+      "severity": "critical",
+      "allowExceptions": true,
+      "exceptions": ["**/test/fixtures/**", "**/docs/examples/**"]
+    },
+    "cryptographic_materials": {
+      "description": "Block all cryptographic materials",
+      "patterns": [
+        "**/*.key",
+        "**/*.pem",
+        "**/*.crt",
+        "**/*.cer",
+        "**/*.csr",
+        "**/*.der",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/*.p7b",
+        "**/*.p7c",
+        "**/*.jks",
+        "**/*.keystore",
+        "**/*.truststore",
+        "**/id_rsa*",
+        "**/id_dsa*",
+        "**/id_ecdsa*",
+        "**/id_ed25519*",
+        "**/*.ppk",
+        "**/*.pub"
+      ],
+      "rationale": "Cryptographic materials must use key management systems",
+      "severity": "critical",
+      "allowExceptions": false
+    },
+    "environment_configs": {
+      "description": "Block environment and configuration files",
+      "patterns": [
+        "**/.env*",
+        "**/*.env",
+        "**/env.*",
+        "**/environment*",
+        "**/config/*.yml",
+        "**/config/*.yaml",
+        "**/config/*.json",
+        "**/settings/*.yml",
+        "**/settings/*.yaml",
+        "**/settings/*.json",
+        "**/.config/**",
+        "**/.*rc",
+        "**/application*.properties",
+        "**/application*.yml",
+        "**/application*.yaml"
+      ],
+      "rationale": "Configuration should be externalized",
+      "severity": "high",
+      "allowExceptions": true,
+      "exceptions": ["**/config/schema.*", "**/config/default.*"]
+    },
+    "cloud_enterprise": {
+      "description": "Block cloud provider configurations",
+      "patterns": [
+        "**/.aws/**",
+        "**/.azure/**",
+        "**/.gcp/**",
+        "**/.ibmcloud/**",
+        "**/.oracle/**",
+        "**/*credential*.json",
+        "**/*serviceaccount*.json",
+        "**/*service-account*.json",
+        "**/terraform.tfstate*",
+        "**/terraform.tfvars*",
+        "**/*.tf.json",
+        "**/ansible/**/*vault*",
+        "**/cloudformation/**/*parameter*",
+        "**/.kube/**",
+        "**/kubeconfig*",
+        "**/helm/**/*values*.yaml"
+      ],
+      "rationale": "Cloud configs must use enterprise deployment systems",
+      "severity": "critical",
+      "allowExceptions": false
+    },
+    "database_enterprise": {
+      "description": "Block database configurations and data",
+      "patterns": [
+        "**/*.sql",
+        "**/*.dump",
+        "**/*.backup",
+        "**/*.bak",
+        "**/backup*/**",
+        "**/migration*/**.sql",
+        "**/seed*/**.sql",
+        "**/database.yml",
+        "**/database.yaml",
+        "**/database.json",
+        "**/datasource*.properties",
+        "**/hibernate.cfg.xml",
+        "**/persistence.xml",
+        "**/*connection*string*"
+      ],
+      "rationale": "Database access must use enterprise data layer",
+      "severity": "high",
+      "allowExceptions": true,
+      "exceptions": ["**/migrations/schema/**", "**/db/structure.sql"]
+    },
+    "internal_tools": {
+      "description": "Block internal enterprise tools and scripts",
+      "patterns": [
+        "**/internal*tool*/**",
+        "**/corp*script*/**",
+        "**/enterprise*util*/**",
+        "**/admin*tool*/**",
+        "**/devops*script*/**",
+        "**/deployment*script*/**"
+      ],
+      "rationale": "Internal tools should use separate repositories",
+      "severity": "medium",
+      "allowExceptions": true,
+      "exceptions": ["**/docs/**"]
+    },
+    "compliance_data": {
+      "description": "Block compliance-sensitive data",
+      "patterns": [
+        "**/*pii*/**",
+        "**/*gdpr*/**",
+        "**/*hipaa*/**",
+        "**/*pci*/**",
+        "**/*sox*/**",
+        "**/compliance*data*/**",
+        "**/audit*/**",
+        "**/regulatory*/**"
+      ],
+      "rationale": "Compliance data requires special handling",
+      "severity": "critical",
+      "allowExceptions": false
+    },
+    "vendor_configs": {
+      "description": "Block vendor-specific configurations",
+      "patterns": [
+        "**/vendor*config*/**",
+        "**/third*party*/**/*config*",
+        "**/partner*/**/*credential*",
+        "**/integration*/**/*key*",
+        "**/external*api*/**/*token*"
+      ],
+      "rationale": "Vendor configs should use enterprise integration layer",
+      "severity": "high",
+      "allowExceptions": false
+    },
+    "network_configs": {
+      "description": "Block network and infrastructure configs",
+      "patterns": [
+        "**/network*.conf",
+        "**/nginx*.conf",
+        "**/apache*.conf",
+        "**/httpd*.conf",
+        "**/haproxy*.cfg",
+        "**/squid*.conf",
+        "**/iptables*.rules",
+        "**/firewall*.rules",
+        "**/vpn*config*/**"
+      ],
+      "rationale": "Network configs managed by infrastructure team",
+      "severity": "high",
+      "allowExceptions": false
+    },
+    "monitoring_configs": {
+      "description": "Block monitoring and observability configs",
+      "patterns": [
+        "**/datadog*.yml",
+        "**/newrelic*.yml",
+        "**/prometheus*.yml",
+        "**/grafana*/**/*datasource*",
+        "**/elastic*/**/*credential*",
+        "**/splunk*/**/*token*"
+      ],
+      "rationale": "Monitoring configs use centralized systems",
+      "severity": "medium",
+      "allowExceptions": false
+    }
+  },
+  "allowedPatterns": [
+    "**/test/unit/**",
+    "**/test/fixtures/**",
+    "**/docs/**",
+    "**/README.md",
+    "**/*.md"
+  ],
+  "settings": {
+    "enableAutoFix": false,
+    "scanFrequency": "continuous",
+    "notificationLevel": "error",
+    "blockOnViolation": true,
+    "enableGitHooks": true,
+    "requireApproval": true,
+    "auditLogging": true,
+    "centralizedReporting": true,
+    "integrations": {
+      "siem": true,
+      "ticketing": true,
+      "compliance": true
+    }
+  }
+}

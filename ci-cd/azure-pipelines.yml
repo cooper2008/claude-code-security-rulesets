@@ -1,0 +1,274 @@
+# Claude Code Security Validation Pipeline
+# Azure DevOps Pipeline for automated security validation
+
+trigger:
+  branches:
+    include:
+    - main
+    - master
+    - develop
+    - release/*
+  paths:
+    include:
+    - .claude-code.json
+    - src/*
+    - '*.js'
+    - '*.ts'
+
+pr:
+  branches:
+    include:
+    - main
+    - master
+  paths:
+    include:
+    - .claude-code.json
+    - src/*
+
+schedules:
+- cron: "0 2 * * *"
+  displayName: Daily security audit
+  branches:
+    include:
+    - main
+  always: true
+
+variables:
+  vmImage: 'ubuntu-latest'
+  nodeVersion: '18.x'
+  claudeCodeVersion: 'latest'
+
+pool:
+  vmImage: $(vmImage)
+
+stages:
+- stage: SecurityValidation
+  displayName: 'Security Validation'
+  jobs:
+  - job: PrepareEnvironment
+    displayName: 'Prepare Environment'
+    steps:
+    - task: NodeTool@0
+      displayName: 'Install Node.js'
+      inputs:
+        versionSpec: $(nodeVersion)
+        
+    - script: |
+        npm install -g claude-code-security-rulesets@$(claudeCodeVersion)
+        claude-code --version
+      displayName: 'Install Claude Code'
+      
+    - script: |
+        if [ ! -f .claude-code.json ]; then
+          echo "No configuration found, generating default..."
+          claude-code init --template=production --yes
+        fi
+        claude-code config validate --config .claude-code.json
+      displayName: 'Validate Configuration'
+      
+  - job: CoreSecurityValidation
+    displayName: 'Core Security Validation'
+    dependsOn: PrepareEnvironment
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: $(nodeVersion)
+        
+    - script: npm install -g claude-code-security-rulesets@$(claudeCodeVersion)
+      displayName: 'Install Claude Code'
+      
+    - script: |
+        claude-code validate \
+          --config .claude-code.json \
+          --format json \
+          --output security-validation-report.json \
+          --strict \
+          --include-performance
+      displayName: 'Run Security Validation'
+      continueOnError: false
+      
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'security-validation-report.xml'
+        testRunTitle: 'Claude Code Security Validation'
+      displayName: 'Publish Security Test Results'
+      
+    - task: PublishBuildArtifacts@1
+      condition: always()
+      inputs:
+        pathtoPublish: 'security-validation-report.json'
+        artifactName: 'security-reports'
+      displayName: 'Publish Security Reports'
+      
+  - job: PerformanceBenchmark
+    displayName: 'Performance Benchmark'
+    dependsOn: PrepareEnvironment
+    condition: succeeded()
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: $(nodeVersion)
+        
+    - script: npm install -g claude-code-security-rulesets@$(claudeCodeVersion)
+      displayName: 'Install Claude Code'
+      
+    - script: |
+        claude-code benchmark \
+          --config .claude-code.json \
+          --target-time 100ms \
+          --memory-limit 50MB \
+          --output performance-benchmark.json
+      displayName: 'Run Performance Benchmark'
+      continueOnError: true
+      
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: 'performance-benchmark.json'
+        artifactName: 'performance-reports'
+      displayName: 'Publish Performance Reports'
+
+- stage: ComplianceValidation
+  displayName: 'Compliance Validation'
+  dependsOn: SecurityValidation
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.Reason'], 'Schedule')))
+  jobs:
+  - job: ComplianceCheck
+    displayName: 'Compliance Check'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: $(nodeVersion)
+        
+    - script: npm install -g claude-code-security-rulesets@$(claudeCodeVersion)
+      displayName: 'Install Claude Code'
+      
+    - script: |
+        claude-code compliance \
+          --framework SOC2 \
+          --config .claude-code.json \
+          --output compliance-report.json \
+          --generate-evidence \
+          --include-attestation
+      displayName: 'Run Compliance Validation'
+      
+    - script: |
+        claude-code dashboard \
+          --input compliance-report.json \
+          --output compliance-dashboard.html \
+          --template enterprise \
+          --include-trends
+      displayName: 'Generate Compliance Dashboard'
+      
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: |
+          compliance-report.json
+          compliance-dashboard.html
+        artifactName: 'compliance-reports'
+      displayName: 'Publish Compliance Reports'
+      
+- stage: SecurityReporting
+  displayName: 'Security Reporting'
+  dependsOn: [SecurityValidation, ComplianceValidation]
+  condition: always()
+  jobs:
+  - job: ConsolidateReports
+    displayName: 'Consolidate Reports'
+    steps:
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'all'
+        downloadPath: '$(System.ArtifactsDirectory)'
+      displayName: 'Download All Artifacts'
+      
+    - task: NodeTool@0
+      inputs:
+        versionSpec: $(nodeVersion)
+        
+    - script: npm install -g claude-code-security-rulesets@$(claudeCodeVersion)
+      displayName: 'Install Claude Code'
+      
+    - script: |
+        claude-code merge-reports \
+          --input-dir "$(System.ArtifactsDirectory)" \
+          --output consolidated-security-report.json \
+          --include-summary \
+          --generate-executive-summary
+      displayName: 'Consolidate Security Reports'
+      
+    - script: |
+        claude-code executive-summary \
+          --input consolidated-security-report.json \
+          --output executive-summary.md \
+          --format markdown \
+          --include-recommendations
+      displayName: 'Generate Executive Summary'
+      
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: |
+          consolidated-security-report.json
+          executive-summary.md
+        artifactName: 'final-reports'
+      displayName: 'Publish Final Reports'
+
+- stage: DeploymentGate
+  displayName: 'Deployment Gate'
+  dependsOn: SecurityReporting
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+  jobs:
+  - job: SecurityGateEvaluation
+    displayName: 'Security Gate Evaluation'
+    steps:
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        artifactName: 'final-reports'
+        downloadPath: '$(System.ArtifactsDirectory)'
+      displayName: 'Download Final Reports'
+      
+    - script: |
+        REPORT_FILE="$(System.ArtifactsDirectory)/final-reports/consolidated-security-report.json"
+        
+        if [ ! -f "$REPORT_FILE" ]; then
+          echo "Security report not found!"
+          exit 1
+        fi
+        
+        IS_VALID=$(jq -r '.isValid' "$REPORT_FILE")
+        ERROR_COUNT=$(jq -r '.errors | length' "$REPORT_FILE")
+        
+        if [ "$IS_VALID" != "true" ]; then
+          echo "❌ Security validation failed - deployment blocked"
+          exit 1
+        fi
+        
+        if [ "$ERROR_COUNT" -gt 0 ]; then
+          echo "❌ Critical errors found - deployment blocked"
+          jq -r '.errors[] | "Error: " + .message' "$REPORT_FILE"
+          exit 1
+        fi
+        
+        echo "✅ Security gate passed - deployment authorized"
+        echo "🚀 Ready for production deployment"
+        
+        # Set output variable for subsequent stages
+        echo "##vso[task.setvariable variable=deploymentApproved;isOutput=true]true"
+      name: securityGate
+      displayName: 'Evaluate Security Gate'
+      
+  - job: NotifySecurityTeam
+    displayName: 'Notify Security Team'
+    condition: succeeded()
+    dependsOn: SecurityGateEvaluation
+    variables:
+      deploymentApproved: $[ dependencies.SecurityGateEvaluation.outputs['securityGate.deploymentApproved'] ]
+    steps:
+    - script: |
+        echo "📧 Sending security validation notification..."
+        echo "Deployment Approved: $(deploymentApproved)"
+        # Integration with notification service would go here
+      displayName: 'Send Notification'

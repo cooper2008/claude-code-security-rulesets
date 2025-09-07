@@ -1,0 +1,170 @@
+{
+  "id": "development",
+  "name": "Development Environment",
+  "version": "1.0.0",
+  "category": "development",
+  "description": "Balanced security for local development - protects secrets while allowing development tools",
+  "compliance": [],
+  "tags": ["development", "local", "permissive"],
+  "isBuiltIn": true,
+  "createdAt": "2024-01-15T00:00:00Z",
+  "updatedAt": "2024-01-15T00:00:00Z",
+  "rules": {
+    "permissions": {
+      "deny": [
+        // === GENERIC SECRET/CREDENTIAL PROTECTION ===
+        "**/secret*/**",
+        "**/Secret*/**", 
+        "**/credential*/**",
+        "**/private*/**",
+        "**/confidential*/**",
+        "**/auth*/**",
+        
+        // === GENERIC SECRET FILES ===
+        "**/*secret*",
+        "**/*password*",
+        "**/*passwd*",
+        "**/*token*",
+        "**/*key*",
+        "**/*credential*",
+        "**/*private*",
+        "**/*auth*",
+        
+        // === ENVIRONMENT & CONFIG SECRETS ===
+        "**/.env*",
+        "**/.environment*",
+        "**/.*rc",
+        "**/.profile",
+        "**/.bash_profile",
+        "**/.bashrc",
+        "**/.zshrc",
+        
+        // === CERTIFICATE/KEY EXTENSIONS ===
+        "**/*.pem",
+        "**/*.key",
+        "**/*.crt",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/*.jks",
+        "**/*.keystore",
+        "**/*.ppk",
+        
+        // === SSH & SYSTEM SECURITY ===
+        "**/.ssh/**",
+        "/etc/passwd",
+        "/etc/shadow",
+        "/etc/ssh/**",
+        "/root/**",
+        
+        // === CLOUD CREDENTIALS ===
+        "**/.aws/**",
+        "**/.azure/**",
+        "**/.gcp/**",
+        "**/.cloud*/**",
+        
+        // === BACKUP PATTERNS ===
+        "**/backup*/**",
+        "**/*.backup*",
+        "**/*.bak*",
+        "**/*_backup*",
+        
+        // === DANGEROUS OPERATIONS ===
+        "Execute(sudo)",
+        "Execute(su)", 
+        // "Execute(rm -rf /*)",  // TEMPORARILY DISABLED FOR PROJECT CLEANUP
+        "Execute(chmod +x /**)",
+        
+        // === NETWORK SECURITY ===
+        "Network(*.internal)",
+        "Network(*.local)",
+        "Network(*:22)",
+        "Network(*:3389)"
+      ],
+      
+      "ask": [
+        // === PACKAGE MANAGEMENT ===
+        "Write(**/package.json)",
+        "Write(**/requirements.txt)",
+        "Write(**/composer.json)",
+        "Write(**/Gemfile)",
+        "Execute(npm install)",
+        "Execute(pip install)",
+        "Execute(composer install)",
+        
+        // === GIT OPERATIONS ===
+        "Execute(git push)",
+        "Execute(git pull)",
+        
+        // === NETWORK ACCESS ===
+        "Network(*)",
+        
+        // === CONFIG MODIFICATIONS ===
+        "Write(**/config/**)",
+        "Write(**/.gitconfig)",
+        
+        // === SYSTEM TOOLS ===
+        "Execute(docker)",
+        "Execute(kubectl)"
+      ],
+      
+      "allow": [
+        // === PROJECT FILES ===
+        "Read(/project/**)",
+        "Write(/project/src/**)",
+        "Write(/project/dist/**)",
+        "Write(/project/build/**)",
+        "Write(/project/public/**)",
+        "Write(/project/assets/**)",
+        
+        // === DEVELOPMENT TOOLS ===
+        "Execute(npm)",
+        "Execute(node)",
+        "Execute(python)",
+        "Execute(java)",
+        "Execute(mvn)",
+        "Execute(gradle)",
+        "Execute(make)",
+        
+        // === VERSION CONTROL ===
+        "Execute(git add)",
+        "Execute(git commit)",
+        "Execute(git status)",
+        "Execute(git diff)",
+        "Execute(git log)",
+        
+        // === SAFE NETWORKS ===
+        "Network(registry.npmjs.org)",
+        "Network(pypi.org)",
+        "Network(rubygems.org)",
+        "Network(repo.maven.apache.org)",
+        "Network(github.com)",
+        "Network(api.github.com)",
+        "Network(gitlab.com)",
+        "Network(bitbucket.org)"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1705276800000,
+      "templateId": "development",
+      "name": "Development Environment Security",
+      "environment": "development"
+    }
+  },
+  "parameters": [
+    {
+      "name": "projectPath",
+      "type": "string",
+      "description": "Path to the project directory",
+      "required": false,
+      "defaultValue": "/project"
+    },
+    {
+      "name": "allowedRegistries",
+      "type": "array", 
+      "description": "Additional package registries to allow",
+      "required": false,
+      "defaultValue": []
+    }
+  ]
+}

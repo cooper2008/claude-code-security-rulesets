@@ -1,0 +1,283 @@
+{
+  "id": "production",
+  "name": "Production Environment",
+  "version": "1.0.0", 
+  "category": "production",
+  "description": "Strict security for production environments - minimal permissions with comprehensive protection",
+  "compliance": [],
+  "tags": ["production", "strict", "enterprise"],
+  "isBuiltIn": true,
+  "createdAt": "2024-01-15T00:00:00Z",
+  "updatedAt": "2024-01-15T00:00:00Z",
+  "rules": {
+    "permissions": {
+      "deny": [
+        // === COMPREHENSIVE SECRET PROTECTION ===
+        "**/secret*/**",
+        "**/Secret*/**",
+        "**/SECRET*/**",
+        "**/credential*/**",
+        "**/Credential*/**",
+        "**/private*/**",
+        "**/Private*/**",
+        "**/confidential*/**",
+        "**/sensitive*/**",
+        "**/auth*/**",
+        "**/key*/**",
+        "**/cert*/**",
+        "**/certificate*/**",
+        
+        // === ALL SECRET FILE PATTERNS ===
+        "**/*secret*",
+        "**/*Secret*",
+        "**/*SECRET*",
+        "**/*credential*",
+        "**/*password*",
+        "**/*Password*",
+        "**/*passwd*",
+        "**/*token*",
+        "**/*Token*",
+        "**/*key*",
+        "**/*Key*",
+        "**/*private*",
+        "**/*Private*",
+        "**/*confidential*",
+        "**/*sensitive*",
+        "**/*auth*",
+        "**/*Auth*",
+        "**/*login*",
+        "**/*Login*",
+        
+        // === ENVIRONMENT & CONFIG FILES ===
+        "**/.env*",
+        "**/.environment*",
+        "**/.*rc",
+        "**/.profile",
+        "**/.bash_profile",
+        "**/.bashrc",
+        "**/.zshrc",
+        "**/.config*/**/*secret*",
+        "**/.config*/**/*credential*",
+        "**/.config*/**/*auth*",
+        "**/config*/**/*secret*",
+        "**/config*/**/*credential*",
+        "**/config*/**/*password*",
+        
+        // === ALL CERTIFICATE/KEY EXTENSIONS ===
+        "**/*.pem",
+        "**/*.key", 
+        "**/*.crt",
+        "**/*.cert",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/*.jks",
+        "**/*.keystore",
+        "**/*.truststore",
+        "**/*.ppk",
+        "**/*.pub",
+        "**/*.priv",
+        
+        // === COMPREHENSIVE BACKUP PATTERNS ===
+        "**/backup*/**",
+        "**/Backup*/**",
+        "**/BACKUP*/**",
+        "**/*.backup*",
+        "**/*.bak*",
+        "**/*.old*",
+        "**/*.orig*",
+        "**/*_backup*",
+        "**/*-backup*",
+        "**/*_bak*",
+        "**/*-bak*",
+        
+        // === TEMP SENSITIVE FILES ===
+        "**/tmp/**/*secret*",
+        "**/tmp/**/*password*",
+        "**/tmp/**/*key*",
+        "**/temp/**/*secret*",
+        "**/temp/**/*password*",
+        "**/temp/**/*key*",
+        "/var/tmp/**/*secret*",
+        "/var/tmp/**/*key*",
+        
+        // === LOG PATTERNS WITH SECRETS ===
+        "**/log*/**/*auth*",
+        "**/log*/**/*secure*",
+        "**/log*/**/*login*",
+        "**/log*/**/*password*",
+        "**/log*/**/*credential*",
+        "**/logs/**/*auth*",
+        "**/logs/**/*secure*",
+        "**/logs/**/*login*",
+        
+        // === ALL CLOUD CREDENTIALS ===
+        "**/.aws/**",
+        "**/.azure/**",
+        "**/.gcp/**",
+        "**/.google*/**",
+        "**/.cloud*/**",
+        "**/cloud*/**/*credential*",
+        "**/cloud*/**/*secret*",
+        "**/cloud*/**/*key*",
+        "**/.kube/config",
+        "**/.docker/config.json",
+        
+        // === SERVICE ACCOUNT KEYS ===
+        "**/*service-account*.json",
+        "**/*serviceaccount*.json",
+        "**/*.service-account.json",
+        "**/service_account*.json",
+        "**/*-sa-*.json",
+        
+        // === DATABASE CREDENTIALS ===
+        "**/.pgpass",
+        "**/my.cnf",
+        "**/.my.cnf",
+        "**/mongodb.conf",
+        "**/redis.conf",
+        "**/database.yml",
+        "**/db_config.*",
+        "**/*database*.json",
+        "**/*db*.json",
+        
+        // === SSH & SYSTEM SECURITY ===
+        "**/.ssh/**",
+        "/etc/passwd",
+        "/etc/shadow",
+        "/etc/group",
+        "/etc/gshadow",
+        "/etc/sudoers",
+        "/etc/sudoers.d/**",
+        "/etc/ssh/**",
+        "/home/*/.ssh/**",
+        "/Users/*/.ssh/**",
+        "/root/**",
+        
+        // === SYSTEM DIRECTORIES ===
+        "Write(/etc/**)",
+        "Write(/usr/**)",
+        "Write(/bin/**)",
+        "Write(/sbin/**)",
+        "Write(/boot/**)",
+        "Write(/var/log/**)",
+        
+        // === DANGEROUS OPERATIONS ===
+        "Execute(sudo)",
+        "Execute(su)",
+        "Execute(passwd)",
+        "Execute(chmod +x /**)",
+        "Execute(chown)",
+        "Execute(chgrp)",
+        "Execute(rm -rf /*)",
+        "Execute(mkfs.*)",
+        "Execute(fdisk)",
+        "Execute(dd)",
+        "Execute(mount)",
+        "Execute(umount)",
+        "Execute(systemctl)",
+        "Execute(service)",
+        
+        // === COMPREHENSIVE NETWORK RESTRICTIONS ===
+        "Network(*.internal)",
+        "Network(*.local)",
+        "Network(localhost:22)",
+        "Network(127.0.0.1:22)",
+        "Network(*:22)",
+        "Network(*:3389)",
+        "Network(*:5432)",
+        "Network(*:3306)",
+        "Network(*:27017)",
+        "Network(*:6379)",
+        "Network(*.ssh)",
+        "Network(*.rdp)",
+        
+        // === PACKAGE MANAGER CREDENTIALS ===
+        "**/.npmrc",
+        "**/.pypirc",
+        "**/pip.conf",
+        "**/.gemrc",
+        "**/composer.json",
+        
+        // === CI/CD & DEPLOYMENT ===
+        "**/.circleci/config.yml",
+        "**/.github/workflows/**",
+        "**/.gitlab-ci.yml",
+        "**/jenkins/credentials*",
+        "**/deploy_key*",
+        
+        // === TERRAFORM & INFRASTRUCTURE ===
+        "**/terraform.tfvars",
+        "**/*.tfvars",
+        "**/terraform.tfstate",
+        "**/.terraform/**"
+      ],
+      
+      "ask": [
+        // === CRITICAL OPERATIONS ===
+        "Execute(git push)",
+        "Execute(npm publish)",
+        "Execute(docker push)",
+        "Execute(kubectl apply)",
+        
+        // === CONFIG CHANGES ===
+        "Write(**/config/**)",
+        "Write(**/.gitconfig)",
+        "Write(**/package.json)",
+        "Write(**/requirements.txt)",
+        
+        // === DEPLOYMENT OPERATIONS ===
+        "Execute(terraform apply)",
+        "Execute(helm install)",
+        "Execute(docker-compose up)",
+        
+        // === NETWORK ACCESS ===
+        "Network(*)"
+      ],
+      
+      "allow": [
+        // === READ-ONLY PROJECT ACCESS ===
+        "Read(/project/**)",
+        
+        // === LIMITED WRITE ACCESS ===
+        "Write(/project/dist/**)",
+        "Write(/project/build/**)",
+        "Write(/project/logs/**)",
+        
+        // === ESSENTIAL TOOLS ===
+        "Execute(npm)",
+        "Execute(node)",
+        "Execute(git status)",
+        "Execute(git log)",
+        "Execute(git diff)",
+        
+        // === APPROVED NETWORKS ONLY ===
+        "Network(api.github.com)",
+        "Network(registry.npmjs.org)",
+        "Network(github.com)"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1705276800000,
+      "templateId": "production",
+      "name": "Production Environment Security",
+      "environment": "production"
+    }
+  },
+  "parameters": [
+    {
+      "name": "allowedNetworks",
+      "type": "array",
+      "description": "Additional networks allowed for production access",
+      "required": false,
+      "defaultValue": []
+    },
+    {
+      "name": "deploymentTools",
+      "type": "array",
+      "description": "Approved deployment tools for this environment",
+      "required": false,
+      "defaultValue": ["npm", "node"]
+    }
+  ]
+}

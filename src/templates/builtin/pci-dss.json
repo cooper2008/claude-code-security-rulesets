@@ -1,0 +1,167 @@
+{
+  "id": "pci-dss",
+  "name": "PCI DSS Compliance",
+  "category": "compliance",
+  "rules": {
+    "permissions": {
+      "deny": [
+        "exec *",
+        "shell *",
+        "eval *", 
+        "rm -rf *",
+        "format *",
+        "delete *",
+        "drop database",
+        "sudo *",
+        "chmod 777 *",
+        "git push --force",
+        "npm publish",
+        "docker run --privileged",
+        "curl *",
+        "wget *",
+        "ssh *",
+        "scp *",
+        "rsync *",
+        "env *",
+        "printenv",
+        "cat /etc/passwd",
+        "cat /etc/shadow",
+        "access cardholder data",
+        "store card numbers",
+        "log card data",
+        "export payment data",
+        "print cardholder data",
+        "email cardholder data",
+        "copy payment data",
+        "screenshot payment forms",
+        "disable payment logging",
+        "bypass payment security",
+        "modify payment audit logs"
+      ],
+      "ask": [
+        "git push",
+        "npm script *", 
+        "docker run",
+        "network request {{allowedPaymentGateways}}",
+        "process payment",
+        "access payment system",
+        "modify cardholder data",
+        "backup payment data",
+        "restore payment data",
+        "generate payment reports",
+        "access payment audit logs",
+        "run vulnerability scans"
+      ],
+      "allow": [
+        "read approved files",
+        "write approved files",
+        "test *",
+        "build *", 
+        "lint *",
+        "audit *",
+        "log actions",
+        "read audit logs",
+        "encrypt payment data",
+        "decrypt authorized payment data",
+        "tokenize card data",
+        "validate input",
+        "sanitize payment input",
+        "authenticate payment users",
+        "authorize payment transactions",
+        "mask card numbers"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1704067200000,
+      "name": "PCI DSS Compliance Template",
+      "environment": "production"
+    }
+  },
+  "description": "PCI DSS compliant security policies for organizations processing, storing, or transmitting cardholder data. Ensures payment card security requirements across all merchant levels.",
+  "compliance": ["PCI-DSS"],
+  "version": "1.0.0",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "tags": ["pci-dss", "payment", "compliance", "cardholder", "security"],
+  "isBuiltIn": true,
+  "parameters": [
+    {
+      "name": "merchantLevel",
+      "type": "string",
+      "description": "PCI DSS merchant level classification",
+      "required": true,
+      "validation": {
+        "enum": ["level1", "level2", "level3", "level4"]
+      }
+    },
+    {
+      "name": "cardDataStorage",
+      "type": "boolean",
+      "description": "Whether cardholder data is stored",
+      "required": false,
+      "defaultValue": false
+    },
+    {
+      "name": "tokenizationEnabled",
+      "type": "boolean",
+      "description": "Use tokenization for cardholder data",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "encryptionRequired",
+      "type": "boolean",
+      "description": "Require cardholder data encryption",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "allowedPaymentGateways",
+      "type": "array",
+      "description": "List of approved payment gateway domains",
+      "required": false,
+      "defaultValue": ["api.stripe.com", "api.paypal.com"],
+      "validation": {
+        "minLength": 1,
+        "maxLength": 10
+      }
+    },
+    {
+      "name": "vulnerabilityScanning",
+      "type": "boolean",
+      "description": "Enable regular vulnerability scanning",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "penetrationTesting",
+      "type": "boolean", 
+      "description": "Require annual penetration testing",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "logRetentionMonths",
+      "type": "number",
+      "description": "Payment log retention period in months",
+      "required": false,
+      "defaultValue": 12,
+      "validation": {
+        "min": 12,
+        "max": 120
+      }
+    },
+    {
+      "name": "cardDataRetentionDays",
+      "type": "number",
+      "description": "Maximum cardholder data retention in days",
+      "required": false,
+      "defaultValue": 0,
+      "validation": {
+        "min": 0,
+        "max": 365
+      }
+    }
+  ]
+}

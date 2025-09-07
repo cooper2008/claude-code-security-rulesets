@@ -1,0 +1,248 @@
+{
+  "id": "soc2",
+  "name": "SOC 2 Compliance",
+  "version": "1.0.0",
+  "category": "compliance",
+  "description": "SOC 2 Type II compliance template - strict security controls for service organizations",
+  "compliance": ["SOC2"],
+  "tags": ["soc2", "compliance", "audit", "service-organization"],
+  "isBuiltIn": true,
+  "createdAt": "2024-01-15T00:00:00Z",
+  "updatedAt": "2024-01-15T00:00:00Z",
+  "rules": {
+    "permissions": {
+      "deny": [
+        // === SOC 2 SECURITY PRINCIPLE: ACCESS CONTROLS ===
+        "**/secret*/**",
+        "**/credential*/**",
+        "**/private*/**",
+        "**/confidential*/**",
+        "**/auth*/**",
+        "**/*secret*",
+        "**/*password*",
+        "**/*token*",
+        "**/*key*",
+        "**/*credential*",
+        "**/*private*",
+        "**/*auth*",
+        
+        // === SOC 2 SECURITY PRINCIPLE: LOGICAL ACCESS ===
+        "**/.ssh/**",
+        "/etc/passwd",
+        "/etc/shadow",
+        "/etc/group",
+        "/etc/sudoers",
+        "/root/**",
+        "Execute(sudo)",
+        "Execute(su)",
+        "Execute(passwd)",
+        "Execute(usermod)",
+        "Execute(useradd)",
+        "Execute(userdel)",
+        
+        // === SOC 2 AVAILABILITY PRINCIPLE: SYSTEM PROTECTION ===
+        "Write(/etc/**)",
+        "Write(/usr/**)",
+        "Write(/bin/**)",
+        "Write(/sbin/**)",
+        "Write(/boot/**)",
+        "Execute(rm -rf /*)",
+        "Execute(mkfs.*)",
+        "Execute(fdisk)",
+        "Execute(dd)",
+        "Execute(mount)",
+        "Execute(umount)",
+        "Execute(systemctl)",
+        "Execute(service)",
+        
+        // === SOC 2 CONFIDENTIALITY PRINCIPLE: DATA PROTECTION ===
+        "**/.env*",
+        "**/.environment*",
+        "**/database*/**/*password*",
+        "**/db*/**/*password*",
+        "**/*connection*string*",
+        "**/.pgpass",
+        "**/my.cnf",
+        "**/.my.cnf",
+        "**/mongodb.conf",
+        "**/redis.conf",
+        
+        // === SOC 2 PROCESSING INTEGRITY: BACKUP PROTECTION ===
+        "**/backup*/**",
+        "**/*.backup*",
+        "**/*.bak*",
+        "**/*_backup*",
+        "**/*-backup*",
+        
+        // === SOC 2 PRIVACY PRINCIPLE: PII PROTECTION ===
+        "**/pii*/**",
+        "**/personal*/**",
+        "**/customer*/**/*data*",
+        "**/user*/**/*data*",
+        "**/*pii*",
+        "**/*personal*",
+        "**/*customer*data*",
+        "**/*user*data*",
+        
+        // === CLOUD CREDENTIALS (SOC 2 VENDOR MANAGEMENT) ===
+        "**/.aws/**",
+        "**/.azure/**",
+        "**/.gcp/**",
+        "**/.kube/config",
+        "**/.docker/config.json",
+        "**/*service-account*.json",
+        
+        // === CERTIFICATE/KEY EXTENSIONS ===
+        "**/*.pem",
+        "**/*.key",
+        "**/*.crt",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/*.jks",
+        "**/*.keystore",
+        
+        // === NETWORK SECURITY (SOC 2 BOUNDARY PROTECTION) ===
+        "Network(*.internal)",
+        "Network(*.local)",
+        "Network(*:22)",
+        "Network(*:3389)",
+        "Network(*:5432)",
+        "Network(*:3306)",
+        "Network(*:27017)",
+        "Network(*:6379)",
+        
+        // === CI/CD SECURITY (SOC 2 CHANGE MANAGEMENT) ===
+        "**/.github/workflows/**",
+        "**/.circleci/config.yml",
+        "**/.gitlab-ci.yml",
+        "**/jenkins/credentials*",
+        "**/deploy_key*",
+        
+        // === INFRASTRUCTURE AS CODE ===
+        "**/terraform.tfvars",
+        "**/*.tfvars",
+        "**/terraform.tfstate",
+        "**/.terraform/**",
+        
+        // === PACKAGE MANAGER CREDENTIALS ===
+        "**/.npmrc",
+        "**/.pypirc",
+        "**/pip.conf",
+        "**/.gemrc",
+        
+        // === LOG FILES WITH SENSITIVE DATA ===
+        "**/log*/**/*auth*",
+        "**/log*/**/*secure*",
+        "**/log*/**/*login*",
+        "**/log*/**/*password*",
+        "**/logs/**/*auth*",
+        "**/logs/**/*secure*",
+        "**/logs/**/*password*"
+      ],
+      
+      "ask": [
+        // === SOC 2 CHANGE MANAGEMENT CONTROLS ===
+        "Execute(git push)",
+        "Execute(npm publish)",
+        "Execute(docker push)",
+        "Execute(kubectl apply)",
+        "Execute(terraform apply)",
+        "Execute(helm install)",
+        
+        // === CONFIGURATION CHANGES (AUDIT REQUIRED) ===
+        "Write(**/config/**)",
+        "Write(**/package.json)",
+        "Write(**/requirements.txt)",
+        "Write(**/Dockerfile)",
+        "Write(**/docker-compose.yml)",
+        
+        // === NETWORK ACCESS (MONITORING REQUIRED) ===
+        "Network(*)",
+        
+        // === DATA OPERATIONS (PII HANDLING) ===
+        "Read(**/data/**)",
+        "Write(**/data/**)",
+        
+        // === SYSTEM MONITORING ACCESS ===
+        "Read(**/logs/**)",
+        "Write(**/logs/**)",
+        
+        // === BACKUP OPERATIONS ===
+        "Execute(backup)",
+        "Execute(restore)",
+        
+        // === DATABASE OPERATIONS ===
+        "Execute(mysql)",
+        "Execute(psql)",
+        "Execute(mongo)",
+        "Execute(redis-cli)"
+      ],
+      
+      "allow": [
+        // === NORMAL DEVELOPMENT (PRE-APPROVED) ===
+        "Read(/project/**)",
+        "Write(/project/src/**)",
+        "Write(/project/dist/**)",
+        "Write(/project/build/**)",
+        "Write(/project/public/**)",
+        
+        // === VERSION CONTROL (AUDIT LOGGED) ===
+        "Execute(git add)",
+        "Execute(git commit)",
+        "Execute(git status)",
+        "Execute(git diff)",
+        "Execute(git log)",
+        
+        // === APPROVED DEVELOPMENT TOOLS ===
+        "Execute(npm)",
+        "Execute(node)",
+        "Execute(python)",
+        "Execute(java)",
+        "Execute(mvn)",
+        "Execute(gradle)",
+        
+        // === APPROVED NETWORKS (WHITELISTED) ===
+        "Network(registry.npmjs.org)",
+        "Network(pypi.org)",
+        "Network(repo.maven.apache.org)",
+        "Network(github.com)",
+        "Network(api.github.com)",
+        "Network(gitlab.com)"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1705276800000,
+      "templateId": "soc2",
+      "name": "SOC 2 Compliance Security",
+      "environment": "production",
+      "organization": "service-organization"
+    }
+  },
+  "parameters": [
+    {
+      "name": "auditLogPath",
+      "type": "string",
+      "description": "Path for SOC 2 audit log storage",
+      "required": true,
+      "defaultValue": "/var/log/soc2-audit"
+    },
+    {
+      "name": "complianceMode",
+      "type": "string",
+      "description": "SOC 2 compliance level",
+      "required": false,
+      "defaultValue": "type-ii",
+      "validation": {
+        "enum": ["type-i", "type-ii"]
+      }
+    },
+    {
+      "name": "dataClassification",
+      "type": "array",
+      "description": "Types of sensitive data handled",
+      "required": false,
+      "defaultValue": ["pii", "financial", "health"]
+    }
+  ]
+}

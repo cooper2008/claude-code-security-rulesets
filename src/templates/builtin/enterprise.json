@@ -1,0 +1,187 @@
+{
+  "id": "enterprise", 
+  "name": "Enterprise Security",
+  "category": "compliance",
+  "rules": {
+    "permissions": {
+      "deny": [
+        "exec *",
+        "shell *",
+        "eval *",
+        "rm -rf *",
+        "format *",
+        "delete *",
+        "drop database",
+        "sudo *",
+        "chmod 777 *",
+        "git push --force",
+        "npm publish",
+        "docker run --privileged",
+        "curl *",
+        "wget *",
+        "ssh *",
+        "scp *",
+        "rsync *",
+        "env *",
+        "printenv",
+        "cat /etc/passwd",
+        "cat /etc/shadow",
+        "access sensitive data without authorization",
+        "modify audit logs",
+        "disable security controls",
+        "bypass authentication",
+        "escalate privileges",
+        "install unauthorized software",
+        "access admin panels",
+        "modify system configuration",
+        "export confidential data"
+      ],
+      "ask": [
+        "git push",
+        "npm script *",
+        "docker run",
+        "network request {{approvedDomains}}",
+        "read secrets",
+        "write logs",
+        "access database",
+        "modify user data",
+        "generate reports",
+        "backup data",
+        "restore data",
+        "deploy to production",
+        "access monitoring tools",
+        "run maintenance tasks"
+      ],
+      "allow": [
+        "read approved files",
+        "write approved files",
+        "test *",
+        "build *",
+        "lint *",
+        "audit *",
+        "log actions",
+        "read audit logs",
+        "encrypt data", 
+        "decrypt authorized data",
+        "validate input",
+        "sanitize data",
+        "authenticate users",
+        "authorize access",
+        "rate limit requests",
+        "monitor performance",
+        "cache data"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1704067200000,
+      "name": "Enterprise Security Template",
+      "environment": "production"
+    }
+  },
+  "description": "Comprehensive enterprise security template with role-based access control, audit trails, and defense-in-depth security measures for large organizations.",
+  "compliance": [],
+  "version": "1.0.0", 
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "tags": ["enterprise", "rbac", "comprehensive", "security"],
+  "isBuiltIn": true,
+  "parameters": [
+    {
+      "name": "rbacEnabled",
+      "type": "boolean",
+      "description": "Enable role-based access control",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "approvalWorkflow",
+      "type": "boolean",
+      "description": "Require approval workflow for sensitive actions",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "maxUsers",
+      "type": "number",
+      "description": "Maximum number of users in the system",
+      "required": false,
+      "defaultValue": 1000,
+      "validation": {
+        "min": 1,
+        "max": 100000
+      }
+    },
+    {
+      "name": "sessionTimeoutMinutes",
+      "type": "number",
+      "description": "Session timeout in minutes",
+      "required": false,
+      "defaultValue": 60,
+      "validation": {
+        "min": 5,
+        "max": 480
+      }
+    },
+    {
+      "name": "passwordPolicy",
+      "type": "object",
+      "description": "Password policy configuration",
+      "required": false,
+      "defaultValue": {
+        "minLength": 12,
+        "requireUppercase": true,
+        "requireLowercase": true,
+        "requireNumbers": true,
+        "requireSymbols": true,
+        "maxAge": 90
+      }
+    },
+    {
+      "name": "mfaRequired",
+      "type": "boolean",
+      "description": "Require multi-factor authentication",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "approvedDomains",
+      "type": "array",
+      "description": "List of approved domains for network requests",
+      "required": false,
+      "defaultValue": ["*.company.com", "api.trusted-partner.com"],
+      "validation": {
+        "minLength": 1,
+        "maxLength": 50
+      }
+    },
+    {
+      "name": "auditRetentionYears",
+      "type": "number",
+      "description": "Audit log retention period in years", 
+      "required": false,
+      "defaultValue": 7,
+      "validation": {
+        "min": 1,
+        "max": 20
+      }
+    },
+    {
+      "name": "dataClassification",
+      "type": "string",
+      "description": "Default data classification level",
+      "required": false,
+      "defaultValue": "internal",
+      "validation": {
+        "enum": ["public", "internal", "confidential", "restricted"]
+      }
+    },
+    {
+      "name": "incidentResponse",
+      "type": "boolean",
+      "description": "Enable automated incident response",
+      "required": false,
+      "defaultValue": true
+    }
+  ]
+}
