@@ -123,27 +123,28 @@ claude-security setup --output config.json  # Save to file instead of applying
 }
 ```
 
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Getting Started](docs/GETTING_STARTED.md) | Complete setup guide with examples |
+| [User Guide](docs/USER_GUIDE.md) | Comprehensive usage documentation |
+| [CLI Reference](docs/CLI_REFERENCE.md) | All commands and options |
+| [FAQ](docs/FAQ.md) | Common questions and troubleshooting |
+
 ## 🔧 Development
 
-### Prerequisites
-
-- Node.js 18+ 
-- TypeScript 5+
-
-### Setup
+### Quick Setup
 
 ```bash
-# Clone repository
+# Clone and install
 git clone https://github.com/cooper2008/claude-code-security-rulesets.git
-cd claude-code-security-rulesets
+cd claude-code-security-rulesets && npm install
 
-# Install dependencies
-npm install
+# Build and test
+npm run build && npm test
 
-# Build project
-npm run build
-
-# Run locally
+# Try it locally
 npm run dev setup --dry-run
 ```
 
@@ -151,16 +152,13 @@ npm run dev setup --dry-run
 
 ```
 src/
-├── cli/           # Command-line interface
-├── setup/         # Core scanning and rule generation
-│   ├── scanner.ts    # File detection and security analysis
-│   ├── wizard.ts     # Interactive setup workflow  
-│   └── applier.ts    # Rule application and config management
-├── adapters/      # Multi-AI tool support (future)
-├── utils/         # Formatting and helper utilities
-└── types/         # TypeScript type definitions
+├── cli/           # CLI commands and interface
+├── setup/         # Core scanning and rules engine
+├── templates/     # Security rule templates  
+├── validation/    # Rule validation system
+└── utils/         # Shared utilities
 
-dist/              # Compiled JavaScript output
+docs/              # Documentation
 tests/             # Test suites
 ```
 

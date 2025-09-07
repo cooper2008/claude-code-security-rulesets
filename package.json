@@ -30,7 +30,12 @@
     "clean": "rm -rf dist coverage benchmark/results",
     "prepare": "npm run build",
     "prepack": "npm run clean && npm run build",
-    "validate": "npm run lint && npm run test && npm run build"
+    "validate": "npm run lint && npm run test && npm run build",
+    "prepublishOnly": "npm run validate",
+    "release:patch": "npm version patch && git push --tags",
+    "release:minor": "npm version minor && git push --tags", 
+    "release:major": "npm version major && git push --tags",
+    "release:prerelease": "npm version prerelease --preid=beta && git push --tags"
   },
   "keywords": [
     "claude-code",
@@ -84,8 +89,13 @@
   "files": [
     "dist/**/*",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cooper2008/claude-code-security-rulesets.git"

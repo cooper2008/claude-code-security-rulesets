@@ -1,0 +1,129 @@
+name: NPM Publish
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v1.0.0, v1.0.1, etc.
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write  # Required for npm provenance
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for changelog generation
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Update package.json version
+        run: |
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+
+      - name: Verify build output
+        run: |
+          echo "Checking dist directory..."
+          ls -la dist/
+          echo "Checking CLI executable..."
+          chmod +x dist/cli/index.js
+          node dist/cli/index.js --version
+
+      - name: Publish to NPM (stable)
+        if: "!contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc')"
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to NPM (pre-release)
+        if: "contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc')"
+        run: npm publish --tag next --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ steps.version.outputs.version }}
+          body: |
+            🛡️ **Claude Code Security Rulesets Generator v${{ steps.version.outputs.version }}**
+            
+            ## 🚀 Installation
+            
+            ```bash
+            # Install globally
+            npm install -g claude-code-security-rulesets
+            
+            # Or use without installing
+            npx claude-code-security-rulesets setup
+            ```
+            
+            ## 📦 What's New
+            
+            See [CHANGELOG.md](https://github.com/cooper2008/claude-code-security-rulesets/blob/main/CHANGELOG.md) for detailed changes.
+            
+            ## 🔧 Usage
+            
+            ```bash
+            # Quick setup
+            claude-security setup
+            
+            # Preview changes
+            claude-security setup --dry-run
+            
+            # Project files only
+            claude-security setup --project-only
+            
+            # Check status
+            claude-security status
+            ```
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+
+      - name: Test installation
+        run: |
+          echo "Testing global installation..."
+          npm install -g ./
+          claude-security --version
+          echo "✅ Global installation successful"
+          
+          echo "Testing npx usage..."
+          npx claude-code-security-rulesets --version
+          echo "✅ NPX usage successful"
+
+      - name: Notify success
+        run: |
+          echo "🎉 Successfully published claude-code-security-rulesets@${{ steps.version.outputs.version }} to NPM!"
+          echo "📦 Install with: npm install -g claude-code-security-rulesets"
+          echo "🚀 Or use with: npx claude-code-security-rulesets setup"
