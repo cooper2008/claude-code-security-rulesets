@@ -4,7 +4,8 @@
  */
 
 import { BaseAdapter, AIToolInfo, AdapterCapabilities, SecurityConfiguration } from './base-adapter';
-import { ScanResult, SetupResult } from '../setup/wizard';
+import { ScanResult, ScanFile } from '../setup/scanner';
+import { SetupResult } from '../setup/wizard';
 import { existsSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
@@ -85,7 +86,7 @@ export class CopilotAdapter extends BaseAdapter {
     }
   }
 
-  async applySecurityConfig(scanResult: ScanResult, config: SecurityConfiguration): Promise<SetupResult> {
+  async applySecurityConfig(scanResult: ScanResult, _config: SecurityConfiguration): Promise<SetupResult> {
     const result: SetupResult = {
       projectRulesApplied: 0,
       globalRulesApplied: 0,
@@ -106,8 +107,8 @@ export class CopilotAdapter extends BaseAdapter {
 
     // Track all protected files
     result.protectedFiles = scanResult.files
-      .filter(f => f.risk === 'CRITICAL')
-      .map(f => f.relativePath);
+      .filter((f: ScanFile) => f.risk === 'CRITICAL')
+      .map((f: ScanFile) => f.relativePath);
 
     return result;
   }

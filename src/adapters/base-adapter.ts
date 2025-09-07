@@ -3,7 +3,8 @@
  * Provides a consistent interface for applying security rules across different AI coding tools
  */
 
-import { ScanResult, SetupResult } from '../setup/wizard';
+import { ScanResult } from '../setup/scanner';
+import { SetupResult } from '../setup/wizard';
 
 export type AIToolType = 'claude-code' | 'cursor' | 'copilot' | 'windsurf';
 
@@ -112,7 +113,7 @@ export abstract class BaseAdapter {
    * Common method to filter scan results by risk level
    */
   protected filterFilesByRisk(scanResult: ScanResult, riskLevels: string[]): any[] {
-    return scanResult.files.filter(file => riskLevels.includes(file.risk));
+    return scanResult.files.filter((file: any) => riskLevels.includes(file.risk));
   }
 
   /**

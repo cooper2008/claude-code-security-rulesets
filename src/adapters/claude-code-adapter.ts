@@ -4,7 +4,8 @@
  */
 
 import { BaseAdapter, AIToolInfo, AdapterCapabilities, SecurityConfiguration } from './base-adapter';
-import { ScanResult, SetupResult } from '../setup/wizard';
+import { ScanResult } from '../setup/scanner';
+import { SetupResult } from '../setup/wizard';
 import { RuleApplier } from '../setup/applier';
 import { existsSync } from 'fs';
 import { join } from 'path';
@@ -68,7 +69,7 @@ export class ClaudeCodeAdapter extends BaseAdapter {
     }
   }
 
-  async applySecurityConfig(scanResult: ScanResult, config: SecurityConfiguration): Promise<SetupResult> {
+  async applySecurityConfig(scanResult: ScanResult, _config: SecurityConfiguration): Promise<SetupResult> {
     // Use existing RuleApplier functionality
     return await this.ruleApplier.applyRules(scanResult);
   }

@@ -4,7 +4,8 @@
  */
 
 import { BaseAdapter, AIToolInfo, AdapterCapabilities, SecurityConfiguration } from './base-adapter';
-import { ScanResult, SetupResult } from '../setup/wizard';
+import { ScanResult } from '../setup/scanner';
+import { SetupResult } from '../setup/wizard';
 import { existsSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
