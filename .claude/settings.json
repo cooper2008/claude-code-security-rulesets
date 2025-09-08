@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "deny": ["Write(.env*)", "Execute(rm -rf)"],
+    "allow": ["Read(**/*.ts)"],
+    "ask": ["Write(**/*.ts)", "Execute(npm *)"]
+  }
+}

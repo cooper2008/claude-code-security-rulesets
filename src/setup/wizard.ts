@@ -173,11 +173,12 @@ export class SecurityWizard {
     console.log(chalk.cyan('\n📄 Configuration files that would be created/updated:'));
     console.log(chalk.gray('   Claude Code settings:'));
     if (personalFiles.length > 0) {
-      console.log(chalk.gray(`     • ${chalk.bold('~/.claude/settings.local.json')} → 🌐 Global rules (affects all projects)`));
+      console.log(chalk.gray(`     • ${chalk.bold('~/.claude/settings.json')} → 🌐 Global user settings (affects all projects)`));
       console.log(chalk.gray(`       Protects ${personalFiles.length} personal files (.ssh, .aws, credentials, etc.)`));
     }
     if (projectFiles.length > 0) {
-      console.log(chalk.gray(`     • ${chalk.bold('~/.claude/settings.json')} → 📁 Local project rules (current project only)`));
+      console.log(chalk.gray(`     • ${chalk.bold('.claude/settings.json')} → 📁 Shared project settings (team)`));
+      console.log(chalk.gray(`     • ${chalk.bold('.claude/settings.local.json')} → 🔒 Personal project settings`));
       console.log(chalk.gray(`       Protects ${projectFiles.length} project files (.env, config files, etc.)`));
     }
     

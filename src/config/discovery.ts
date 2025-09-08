@@ -53,10 +53,10 @@ export interface DiscoveryOptions {
  * Default configuration file names in priority order
  */
 const DEFAULT_CONFIG_NAMES = [
-  'settings.json',
-  '.claude/settings.json',
-  'claude-settings.json',
-  '.clauderc.json'
+  '.claude/settings.json',        // Official: Shared project settings
+  '.claude/settings.local.json', // Official: Local project settings
+  'settings.json',                // Legacy fallback
+  '.clauderc.json'                // Legacy fallback
 ];
 
 /**
@@ -156,12 +156,14 @@ function getEnterprisePaths(envVars: Record<string, string | undefined>): string
     paths.push(envVars.CLAUDE_ENTERPRISE_CONFIG);
   }
   
-  // Standard enterprise locations
-  if (process.platform === 'win32') {
-    paths.push('C:\\ProgramData\\Claude\\settings.json');
+  // Standard enterprise locations per official Claude Code documentation
+  if (process.platform === 'darwin') {
+    paths.push('/Library/Application Support/ClaudeCode/managed-settings.json');
+  } else if (process.platform === 'win32') {
+    paths.push('C:\\ProgramData\\ClaudeCode\\managed-settings.json');
   } else {
-    paths.push('/etc/claude/settings.json');
-    paths.push('/usr/local/etc/claude/settings.json');
+    // Linux and WSL
+    paths.push('/etc/claude-code/managed-settings.json');
   }
 
   return paths;
