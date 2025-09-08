@@ -43,6 +43,7 @@
     "src/adapters/base-adapter.ts",
     "src/adapters/windsurf-adapter.ts",
     "src/setup/scanner.ts",
+    "src/cli/index.ts",
     "src/index.ts"
   ],
   "exclude": [
