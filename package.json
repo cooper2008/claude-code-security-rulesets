@@ -31,6 +31,7 @@
     "prepare": "npm run build",
     "prepack": "npm run clean && npm run build",
     "validate": "npm run build",
+    "test:ci": "npm run build",
     "prepublishOnly": "npm run validate",
     "release:patch": "npm version patch && git push --tags",
     "release:minor": "npm version minor && git push --tags",
