@@ -12,7 +12,6 @@ import { resolve } from 'path';
 import type { 
   ClaudeCodeConfiguration, 
   Environment, 
-  ConfigurationMetadata,
   TemplateCategory 
 } from '@/types';
 
@@ -248,8 +247,8 @@ function createMetadata(
   environment: Environment,
   organizationName?: string,
   configName?: string
-): ConfigurationMetadata {
-  const metadata: ConfigurationMetadata = {
+): object {
+  const metadata: object = {
     version: '1.0.0',
     timestamp: Date.now(),
     templateId: template,
@@ -258,7 +257,7 @@ function createMetadata(
   };
   
   if (organizationName) {
-    metadata.organization = organizationName;
+    metadata["organization"] = organizationName;
   }
   
   return metadata;
@@ -269,7 +268,7 @@ function createMetadata(
  */
 function generateConfiguration(
   template: string,
-  metadata: ConfigurationMetadata
+  metadata: object
 ): ClaudeCodeConfiguration {
   const baseConfig = DEFAULT_CONFIGURATIONS[template];
   

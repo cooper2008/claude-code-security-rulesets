@@ -11,7 +11,6 @@ import { resolve } from 'path';
 import type { 
   ClaudeCodeConfiguration, 
   Environment, 
-  ConfigurationMetadata,
   TemplateParameter 
 } from '@/types';
 import { BUILT_IN_TEMPLATES, DEFAULT_CONFIGURATIONS } from './init';
@@ -313,8 +312,8 @@ function createGeneratedMetadata(
   templateId: string,
   environment?: Environment,
   params?: Record<string, unknown>
-): ConfigurationMetadata {
-  const metadata: ConfigurationMetadata = {
+): object {
+  const metadata: object = {
     version: '1.0.0',
     timestamp: Date.now(),
     templateId,
@@ -322,7 +321,7 @@ function createGeneratedMetadata(
   };
   
   if (environment) {
-    metadata.environment = environment;
+    metadata["environment"] = environment;
   }
   
   // Store parameters in metadata for audit trail
