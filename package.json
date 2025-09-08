@@ -1,6 +1,6 @@
 {
   "name": "claude-code-security-rulesets",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A CLI tool and enterprise platform for generating, validating, and deploying Claude Code security configurations with zero-bypass deny enforcement",
   "main": "dist/index.js",
   "bin": {
