@@ -47,14 +47,29 @@ jobs:
           chmod +x dist/cli/index.js
           node dist/cli/index.js --version
 
+      - name: Debug NPM token
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "❌ NPM_TOKEN is empty"
+            exit 1
+          else
+            echo "✅ NPM_TOKEN is set (length: ${#NPM_TOKEN})"
+            echo "✅ Token starts with: ${NPM_TOKEN:0:10}..."
+          fi
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Setup .npmrc for authentication
         run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
           echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
           echo "always-auth=true" >> ~/.npmrc
-
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Verify npm authentication
         run: npm whoami
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish to NPM (stable)
         if: "!contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc')"
         run: npm publish --provenance
