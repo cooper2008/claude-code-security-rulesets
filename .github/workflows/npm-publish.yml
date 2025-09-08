@@ -116,5 +116,6 @@ jobs:
           else
             echo "⚠️ Package not immediately visible (NPM propagation delay)"
             echo "📝 This is normal - package will be available shortly"
-          fi        env:
+          fi
+        env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
