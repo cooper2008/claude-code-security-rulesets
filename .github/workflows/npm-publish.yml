@@ -47,32 +47,54 @@ jobs:
           chmod +x dist/cli/index.js
           node dist/cli/index.js --version
 
-      - name: Debug NPM token
+      - name: Debug NPM configuration
         run: |
-          if [ -z "$NPM_TOKEN" ]; then
-            echo "❌ NPM_TOKEN is empty"
-            exit 1
+          echo "🔍 NPM Configuration Debug:"
+          echo "NPM version: $(npm --version)"
+          echo "Node version: $(node --version)"
+          echo "NPM registry: $(npm config get registry)"
+          echo "NPM userconfig: $(npm config get userconfig)"
+          echo "Environment variables:"
+          env | grep -E "(NPM|NODE)" | sort
+          echo "📋 Current .npmrc locations:"
+          find /home/runner -name ".npmrc" 2>/dev/null || true
+          echo "✅ Setup complete"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify npm authentication
+        run: |
+          echo "🧪 Testing NPM authentication..."
+          if npm whoami; then
+            echo "✅ NPM authentication successful"
+            USER=$(npm whoami)
+            echo "📝 Logged in as: $USER"
           else
-            echo "✅ NPM_TOKEN is set (length: ${#NPM_TOKEN})"
-            echo "✅ Token starts with: ${NPM_TOKEN:0:10}..."
+            echo "❌ NPM authentication failed"
+            echo "🔍 Debugging information:"
+            echo "Registry: $(npm config get registry)"
+            echo "Auth token configured: $([ -n \"$NODE_AUTH_TOKEN\" ] && echo 'Yes' || echo 'No')"
+            exit 1
           fi
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Setup .npmrc for authentication
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to NPM (dry run)
         run: |
-          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
-          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
-          echo "always-auth=true" >> ~/.npmrc
+          echo "🧪 Running dry-run publish..."
+          npm publish --dry-run
+          echo "✅ Dry run successful"
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Verify npm authentication
-        run: npm whoami
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to NPM (stable)
         if: "!contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc')"
-        run: npm publish --provenance
+        run: |
+          echo "🚀 Publishing to NPM..."
+          npm publish --provenance
+          echo "✅ Package published successfully!"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
@@ -91,3 +113,17 @@ jobs:
             ```
           draft: false
           prerelease: false
+
+      - name: Verify NPM publication
+        run: |
+          echo "🔍 Verifying package was published..."
+          sleep 10  # Wait for NPM to propagate
+          if npm view claude-code-security-rulesets@${{ steps.version.outputs.version }}; then
+            echo "✅ Package successfully published and available!"
+            echo "📦 Install with: npm install -g claude-code-security-rulesets"
+          else
+            echo "❌ Package not found after publication"
+            exit 1
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
