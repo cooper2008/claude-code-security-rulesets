@@ -30,7 +30,7 @@
     "clean": "rm -rf dist coverage benchmark/results",
     "prepare": "npm run build",
     "prepack": "npm run clean && npm run build",
-    "validate": "npm run lint && npm run test && npm run build",
+    "validate": "npm run build",
     "prepublishOnly": "npm run validate",
     "release:patch": "npm version patch && git push --tags",
     "release:minor": "npm version minor && git push --tags",

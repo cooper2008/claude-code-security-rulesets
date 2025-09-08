@@ -4,7 +4,7 @@
  */
 
 import { ScanResult } from '../setup/scanner';
-import { SetupResult } from '../setup/wizard';
+import type { SetupResult } from '../setup/wizard';
 
 export type AIToolType = 'claude-code' | 'cursor' | 'copilot' | 'windsurf';
 
@@ -138,7 +138,7 @@ export abstract class BaseAdapter {
       }
     }
     
-    return [...new Set(patterns)]; // Remove duplicates
+    return Array.from(new Set(patterns)); // Remove duplicates
   }
 
   /**
@@ -146,7 +146,7 @@ export abstract class BaseAdapter {
    */
   protected async createConfigBackup(configPath: string): Promise<void> {
     const fs = require('fs');
-    const path = require('path');
+    const _path = require('path');
     
     if (!fs.existsSync(configPath)) return;
     

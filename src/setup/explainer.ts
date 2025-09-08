@@ -131,6 +131,55 @@ export class Explainer {
         risk: 'Could expose personal data, violate privacy regulations, or compromise research integrity.'
       },
       
+      'java': {
+        title: 'Java Project Security',
+        explanation: 'Java applications often connect to databases and external services, requiring protection of configuration and credentials.',
+        example: 'Protect application.properties, database configurations, and API keys.',
+        risk: 'Could expose database credentials, API keys, or sensitive business logic.'
+      },
+      
+      'dotnet': {
+        title: '.NET Project Security',
+        explanation: '.NET applications handle sensitive data and integrate with various services, requiring comprehensive security.',
+        example: 'Protect appsettings.json, connection strings, and authentication certificates.',
+        risk: 'Could expose database access, authentication secrets, or application configuration.'
+      },
+      
+      'ruby': {
+        title: 'Ruby Project Security',
+        explanation: 'Ruby applications, especially Rails apps, handle user data and require protection of credentials and secrets.',
+        example: 'Protect database.yml, secret keys, and configuration files.',
+        risk: 'Could expose database credentials, session secrets, or user data.'
+      },
+      
+      'php': {
+        title: 'PHP Project Security',
+        explanation: 'PHP applications often handle web traffic and database connections, requiring protection of configuration files.',
+        example: 'Protect config files, database credentials, and WordPress configurations.',
+        risk: 'Could expose database access, admin credentials, or application secrets.'
+      },
+      
+      'rust': {
+        title: 'Rust Project Security',
+        explanation: 'Rust applications require protection of configuration files and any embedded credentials.',
+        example: 'Protect Cargo.toml configurations, API keys, and deployment secrets.',
+        risk: 'Could expose build configurations, API access, or deployment credentials.'
+      },
+      
+      'swift': {
+        title: 'Swift/iOS Project Security',
+        explanation: 'Swift and iOS applications require protection of API keys, certificates, and user data.',
+        example: 'Protect Info.plist configurations, signing certificates, and API endpoints.',
+        risk: 'Could expose app store credentials, API keys, or user privacy data.'
+      },
+      
+      'go': {
+        title: 'Go Project Security',
+        explanation: 'Go applications often serve as microservices and APIs, requiring protection of configuration and secrets.',
+        example: 'Protect environment configurations, database connections, and service credentials.',
+        risk: 'Could expose microservice credentials, database access, or API keys.'
+      },
+      
       'general': {
         title: 'General Project Security',
         explanation: 'Every project has some sensitive files that should be protected from accidental exposure.',

@@ -4,7 +4,8 @@
  */
 
 import { BaseAdapter, AIToolInfo, AdapterCapabilities, SecurityConfiguration } from './base-adapter';
-import { ScanResult, SetupResult } from '../setup/wizard';
+import { ScanResult } from '../setup/scanner';
+import type { SetupResult } from '../setup/wizard';
 import { existsSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
@@ -77,12 +78,12 @@ export class WindsurfAdapter extends BaseAdapter {
       // Check if windsurf command is in PATH
       const { spawn } = require('child_process');
       return new Promise((resolve) => {
-        const command = process.platform === 'win32' ? 'where' : 'which';
-        const process = spawn(command, ['windsurf'], { stdio: 'pipe' });
-        process.on('close', (code: number) => {
+        const command: string = process.platform === 'win32' ? 'where' : 'which';
+        const childProcess = spawn(command, ['windsurf'], { stdio: 'pipe' });
+        childProcess.on('close', (code: number) => {
           resolve(code === 0);
         });
-        process.on('error', () => {
+        childProcess.on('error', () => {
           resolve(false);
         });
       });
@@ -91,7 +92,7 @@ export class WindsurfAdapter extends BaseAdapter {
     }
   }
 
-  async applySecurityConfig(scanResult: ScanResult, config: SecurityConfiguration): Promise<SetupResult> {
+  async applySecurityConfig(scanResult: ScanResult, _config: SecurityConfiguration): Promise<SetupResult> {
     const result: SetupResult = {
       projectRulesApplied: 0,
       globalRulesApplied: 0,
@@ -102,7 +103,7 @@ export class WindsurfAdapter extends BaseAdapter {
     const securityConfig = this.generateSecurityConfig(scanResult);
     
     // Apply global .codeiumignore for personal files
-    const personalFiles = scanResult.files.filter(f => f.scope === 'personal' && f.risk === 'CRITICAL');
+    const personalFiles = scanResult.files.filter((f: any) => f.scope === 'personal' && f.risk === 'CRITICAL');
     if (personalFiles.length > 0) {
       await this.createGlobalCodeiumIgnore(personalFiles);
       result.globalRulesApplied = personalFiles.length;
@@ -110,7 +111,7 @@ export class WindsurfAdapter extends BaseAdapter {
     }
 
     // Apply local .codeiumignore for project files
-    const projectFiles = scanResult.files.filter(f => f.scope === 'project' && f.risk === 'CRITICAL');
+    const projectFiles = scanResult.files.filter((f: any) => f.scope === 'project' && f.risk === 'CRITICAL');
     if (projectFiles.length > 0) {
       await this.createLocalCodeiumIgnore(projectFiles);
       result.projectRulesApplied = projectFiles.length;
@@ -121,8 +122,8 @@ export class WindsurfAdapter extends BaseAdapter {
 
     // Track all protected files
     result.protectedFiles = scanResult.files
-      .filter(f => f.risk === 'CRITICAL')
-      .map(f => f.relativePath);
+      .filter((f: any) => f.risk === 'CRITICAL')
+      .map((f: any) => f.relativePath);
 
     return result;
   }
@@ -187,7 +188,7 @@ export class WindsurfAdapter extends BaseAdapter {
 
   protected generateSecurityConfig(scanResult: ScanResult): SecurityConfiguration {
     const criticalFiles = this.filterFilesByRisk(scanResult, ['CRITICAL']);
-    const highFiles = this.filterFilesByRisk(scanResult, ['HIGH']);
+    const _highFiles = this.filterFilesByRisk(scanResult, ['HIGH']);
     
     const ignorePatterns = this.generateIgnorePatterns(criticalFiles);
     

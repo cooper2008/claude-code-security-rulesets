@@ -9,6 +9,9 @@ import { Scanner, ScanResult } from './scanner';
 import { Explainer } from './explainer';
 import { RuleApplier } from './applier';
 
+// Re-export types for other modules
+export type { ScanResult } from './scanner';
+
 export interface SetupOptions {
   /** Setup mode */
   mode?: string;
