@@ -45,9 +45,10 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
-      - name: Update package.json version
-        run: |
-          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+      # Skip version update since package.json is already updated by local release process
+      # - name: Update package.json version
+      #   run: |
+      #     npm version ${{ steps.version.outputs.version }} --no-git-tag-version
 
       - name: Verify build output
         run: |
