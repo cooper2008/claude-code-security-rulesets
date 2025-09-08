@@ -47,11 +47,17 @@ jobs:
           chmod +x dist/cli/index.js
           node dist/cli/index.js --version
 
+      - name: Setup .npmrc for authentication
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+          echo "always-auth=true" >> ~/.npmrc
+
+      - name: Verify npm authentication
+        run: npm whoami
       - name: Publish to NPM (stable)
         if: "!contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc')"
         run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
@@ -61,7 +67,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ steps.version.outputs.version }}
           body: |
-            ��️ **Claude Code Security Rulesets Generator v${{ steps.version.outputs.version }}**
+            🛡️ **Claude Code Security Rulesets Generator v${{ steps.version.outputs.version }}**
             
             ## 🚀 Installation
             
