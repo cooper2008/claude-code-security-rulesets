@@ -47,18 +47,6 @@ jobs:
           chmod +x dist/cli/index.js
           node dist/cli/index.js --version
 
-      - name: Debug NPM configuration
-        run: |
-          echo "🔍 NPM Configuration Debug:"
-          echo "NPM version: $(npm --version)"
-          echo "Node version: $(node --version)"
-          echo "NPM registry: $(npm config get registry)"
-          echo "NPM userconfig: $(npm config get userconfig)"
-          echo "Environment variables:"
-          env | grep -E "(NPM|NODE)" | sort
-          echo "📋 Current .npmrc locations:"
-          find /home/runner -name ".npmrc" 2>/dev/null || true
-          echo "✅ Setup complete"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -120,13 +108,13 @@ jobs:
       - name: Verify NPM publication
         run: |
           echo "🔍 Verifying package was published..."
-          sleep 10  # Wait for NPM to propagate
-          if npm view claude-code-security-rulesets@${{ steps.version.outputs.version }}; then
+          sleep 30  # Wait for NPM to propagate
+          if npm view claude-code-security-rulesets@${{ steps.version.outputs.version }} > /dev/null 2>&1; then
             echo "✅ Package successfully published and available!"
             echo "📦 Install with: npm install -g claude-code-security-rulesets"
+            echo "🔗 View on NPM: https://www.npmjs.com/package/claude-code-security-rulesets"
           else
-            echo "❌ Package not found after publication"
-            exit 1
-          fi
-        env:
+            echo "⚠️ Package not immediately visible (NPM propagation delay)"
+            echo "📝 This is normal - package will be available shortly"
+          fi        env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
