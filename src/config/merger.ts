@@ -200,10 +200,16 @@ export async function mergeConfigurations(
 
 /**
  * Sorts configuration contexts by precedence
- * Order: Enterprise → System → CLI → Project → User
+ * Order: Enterprise → CLI → Project-Local → Project → User (official Claude Code precedence)
  */
 function sortContextsByPrecedence(contexts: MergeContext[]): MergeContext[] {
-  const precedenceOrder: ConfigurationLevel[] = ['enterprise', 'system', 'project', 'user'];
+  const precedenceOrder: ConfigurationLevel[] = [
+    'enterprise',     // Managed policies (highest)
+    'cli',           // Command line arguments
+    'project-local', // .claude/settings.local.json
+    'project',       // .claude/settings.json  
+    'user'          // ~/.claude/settings.json (lowest)
+  ];
   
   return contexts.sort((a, b) => {
     const aIndex = precedenceOrder.indexOf(a.level);

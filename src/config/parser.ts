@@ -216,7 +216,7 @@ export class ConfigurationParser {
     for (const source of sources) {
       if (source.exists) {
         try {
-          const config = await loadConfigurationFromSource(source);
+          const config = await loadConfigurationFromSource(source, options.cliOverrides);
           if (config) {
             // Apply environment variable substitution
             const processedConfig = options.envVars 
@@ -244,11 +244,8 @@ export class ConfigurationParser {
     const mergeResult = await mergeConfigurations(mergeContexts, mergeOptions);
     performance.mergeTime = Date.now() - mergeStart;
 
-    // Apply CLI overrides
+    // CLI overrides are now handled via precedence chain
     let finalConfig = mergeResult.config;
-    if (options.cliOverrides && Object.keys(options.cliOverrides).length > 0) {
-      finalConfig = applyCliOverrides(finalConfig, options.cliOverrides);
-    }
 
     // Validation phase
     const validationStart = Date.now();

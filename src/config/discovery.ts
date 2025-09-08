@@ -27,7 +27,12 @@ export interface ConfigurationSource {
 /**
  * Configuration hierarchy levels
  */
-export type ConfigurationLevel = 'enterprise' | 'system' | 'project' | 'user';
+export type ConfigurationLevel = 
+  | 'enterprise'     // Managed policies (highest precedence)
+  | 'cli'           // Command line arguments  
+  | 'project-local' // .claude/settings.local.json
+  | 'project'       // .claude/settings.json
+  | 'user';         // ~/.claude/settings.json (lowest precedence)
 
 /**
  * Discovery options for finding configuration files
@@ -43,6 +48,8 @@ export interface DiscoveryOptions {
   followSymlinks?: boolean;
   /** Include non-existent files in results */
   includeNonExistent?: boolean;
+  /** CLI argument overrides to include as 'cli' level source */
+  cliOverrides?: Record<string, unknown>;
   /** Cache results for performance */
   useCache?: boolean;
   /** Custom environment variables for path resolution */
@@ -97,7 +104,18 @@ export async function discoverConfigurations(
   const configNames = [...DEFAULT_CONFIG_NAMES, ...additionalNames];
   const sources: ConfigurationSource[] = [];
 
-  // Enterprise-level configuration (system-wide)
+  // CLI overrides (command line arguments)
+  if (options.cliOverrides && Object.keys(options.cliOverrides).length > 0) {
+    sources.push({
+      path: '<cli-arguments>',
+      level: 'cli',
+      exists: true,
+      modifiedTime: new Date(),
+      size: JSON.stringify(options.cliOverrides).length
+    });
+  }
+
+    // Enterprise-level configuration (system-wide)
   const enterprisePaths = getEnterprisePaths(envVars);
   for (const enterprisePath of enterprisePaths) {
     const source = await checkConfigurationPath(enterprisePath, 'enterprise', followSymlinks);
@@ -215,6 +233,21 @@ function getUserPaths(envVars: Record<string, string | undefined>): string[] {
 /**
  * Searches project hierarchy for configuration files
  */
+
+/**
+ * Determines the correct configuration level based on file path
+ */
+function getConfigurationLevel(configPath: string): ConfigurationLevel {
+  if (configPath.endsWith('.claude/settings.local.json')) {
+    return 'project-local';
+  }
+  if (configPath.endsWith('.claude/settings.json')) {
+    return 'project';
+  }
+  // Legacy files default to project level
+  return 'project';
+}
+
 async function searchProjectHierarchy(
   startDir: string,
   configNames: string[],
@@ -229,7 +262,8 @@ async function searchProjectHierarchy(
   while (depth < maxDepth) {
     for (const configName of configNames) {
       const configPath = path.join(currentDir, configName);
-      const source = await checkConfigurationPath(configPath, 'project', followSymlinks);
+      const level = getConfigurationLevel(configPath);
+      const source = await checkConfigurationPath(configPath, level, followSymlinks);
       
       if (source && (includeNonExistent || source.exists)) {
         sources.push(source);
@@ -304,16 +338,57 @@ async function checkConfigurationPath(
  * @param source Configuration source
  * @returns Promise resolving to configuration object or null
  */
+
+/**
+ * Converts CLI overrides to a proper configuration object
+ */
+function convertCliOverridesToConfig(overrides: Record<string, unknown>): ClaudeCodeConfiguration {
+  const config: ClaudeCodeConfiguration = {};
+  
+  Object.entries(overrides).forEach(([key, value]) => {
+    if (key.startsWith('permissions.')) {
+      const permissionType = key.split('.')[1] as 'deny' | 'allow' | 'ask';
+      if (!config.permissions) {
+        config.permissions = {};
+      }
+      if (Array.isArray(value)) {
+        config.permissions[permissionType] = value as string[];
+      }
+    } else if (key.startsWith('metadata.')) {
+      const metadataKey = key.split('.')[1];
+      if (!config.metadata) {
+        config.metadata = { version: '1.0.0', timestamp: Date.now() };
+      }
+      if (metadataKey && typeof value === 'string') {
+        (config.metadata as any)[metadataKey] = value;
+      }
+    } else {
+      // Handle other top-level properties
+      (config as any)[key] = value;
+    }
+  });
+  
+  return config;
+}
+
 export async function loadConfigurationFromSource(
-  source: ConfigurationSource
+  source: ConfigurationSource,
+  cliOverrides?: Record<string, unknown>
 ): Promise<ClaudeCodeConfiguration | null> {
   if (!source.exists) {
     return null;
   }
 
   try {
-    const content = await fs.readFile(source.path, 'utf8');
-    const config = JSON.parse(content) as ClaudeCodeConfiguration;
+    let config: ClaudeCodeConfiguration;
+    
+    // Handle CLI sources specially
+    if (source.path === '<cli-arguments>' && cliOverrides) {
+      config = convertCliOverridesToConfig(cliOverrides);
+    } else {
+      const content = await fs.readFile(source.path, 'utf8');
+      config = JSON.parse(content) as ClaudeCodeConfiguration;
+    }
     
     // Add metadata about the source
     if (!config.metadata) {
