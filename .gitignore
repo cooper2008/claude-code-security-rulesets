@@ -207,7 +207,16 @@ claude-code-*.md
 .spec-workflow/
 .bmad/
 
-# Claude Code specific
+# Claude Code and AI IDE specific - NEVER commit these!
+.claude/
+.serena/
+.cursor/
+.windsurf/
+.copilot/
+.aider/
+.continue/
+
+# Claude Code legacy patterns
 .claude/settings.local.json
 
 # Additional OS artifacts
@@ -235,6 +244,15 @@ $RECYCLE.BIN/
 *.pid.lock
 .npm
 .yarn-integrity
+
+# Development scripts and tools
+cleanup.sh
+debug-*.js
+debug-*.ts
+test-config-*.js
+*-debug.json
+*-local.json
+profile-*.json
 
 # Additional IDE artifacts
 .vscode/settings.json
