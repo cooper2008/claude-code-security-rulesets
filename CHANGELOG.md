@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2024-12-09
+
+### 🚀 Major Infrastructure Improvements
+- **Docker Support**: Added complete Docker containerization with Dockerfile and docker-compose.yml
+- **GitHub Actions**: Implemented comprehensive CI/CD pipeline with Node.js 18.x and 20.x matrix testing
+- **Testing Framework**: Created Jest-based test suite with validation and CLI functionality tests
+
+### 🛡️ Security Enhancements  
+- **Critical Security Fix**: Removed vm2 package due to sandbox escape vulnerabilities (GHSA-cchq-frgv-rjh5, GHSA-g644-9gfx-q4q4)
+- **Zero Vulnerabilities**: npm audit now shows 0 security vulnerabilities
+- **Safer Architecture**: Replaced vulnerable sandbox with secure stub implementation
+
+### 🔧 Core System Fixes
+- **Type System Overhaul**: Fixed severity types to use proper security levels (critical/high/medium/low instead of error/warning)
+- **Export Resolution**: Resolved TypeScript import/export issues in validation system
+- **CLI Consistency**: Fixed command imports and exports across CLI modules
+- **Configuration Access**: Corrected ClaudeCodeConfiguration property access patterns
+
+### 🧪 Testing & Quality
+- **Unit Tests**: Added comprehensive tests for core validation types and CLI functionality
+- **Coverage Configuration**: Properly configured Jest coverage thresholds for development phase
+- **Docker Testing**: All tests run successfully in containerized environment
+- **CI/CD Integration**: Automated testing pipeline with security audit checks
+
+### 🏗️ Development Experience
+- **Containerized Development**: Consistent development environment across all platforms
+- **Path Mapping**: Enhanced TypeScript configuration with proper @/* alias resolution
+- **Build Optimization**: Improved compilation process with better error handling
+
+### ⚠️ Breaking Changes
+- **Sandbox Functionality**: Plugin sandbox execution temporarily disabled (affects advanced enterprise features only)
+- **vm2 Dependency**: Removed vm2 package - custom plugins requiring sandboxing need alternative implementation
+
+### 🔄 Migration Notes
+- **Core Functionality**: All primary Claude Code security validation features remain fully operational
+- **CLI Commands**: No changes to user-facing CLI interface
+- **Configuration Format**: All existing configuration files remain compatible
+
+### 📦 Technical Details
+- **Node.js**: Requires Node.js 18.0.0 or higher
+- **TypeScript**: Enhanced type safety with stricter security-focused interfaces
+- **Dependencies**: Reduced attack surface by removing vulnerable packages
+
 ### Added
 - Comprehensive documentation suite with user guides, CLI reference, and FAQ
 - Basic usage examples for development and production configurations
