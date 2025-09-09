@@ -39,7 +39,12 @@
     }
   },
   "include": [
-    "src/**/*"
+    "src/types/**/*",
+    "src/validation/**/*",
+    "src/cli/**/*",
+    "src/config/**/*",
+    "src/setup/**/*",
+    "src/templates/**/*"
   ],
   "exclude": [
     "node_modules",

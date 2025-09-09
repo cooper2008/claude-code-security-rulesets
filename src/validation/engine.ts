@@ -183,7 +183,7 @@ export class ValidationEngine {
           result.errors.push({
             type: 'SECURITY_VIOLATION',
             message: issue.description,
-            severity: issue.severity,
+            severity: 'error', // Map critical/high to error
             context: { issue }
           });
           result.isValid = false;
@@ -249,7 +249,7 @@ export class ValidationEngine {
         errors: [{
           type: 'INVALID_SYNTAX',
           message: `Validation failed: ${error}`,
-          severity: 'critical'
+          severity: 'error'
         }],
         warnings: [],
         conflicts: [],
@@ -431,7 +431,7 @@ export class ValidationEngine {
         evaluation.errors.push({
           type: 'INVALID_PATTERN',
           message: `Empty rule pattern in ${rule.category} rules`,
-          severity: 'high',
+          severity: 'warning',
           location: { rule: rule.original }
         });
       }
@@ -456,7 +456,7 @@ export class ValidationEngine {
           evaluation.errors.push({
             type: 'INVALID_PATTERN',
             message: `Invalid regex pattern: ${rule.original}`,
-            severity: 'high',
+            severity: 'warning',
             context: { error: String(e) }
           });
         }
@@ -753,7 +753,7 @@ export class ValidationEngine {
         errors.push({
           type: 'SECURITY_VIOLATION',
           message: `ZERO-BYPASS VIOLATION: ${conflict.message}`,
-          severity: 'critical',
+          severity: 'error',
           context: {
             conflict,
             resolution: 'Deny rules must not be overrideable by allow or ask rules'
@@ -784,7 +784,7 @@ export class ValidationEngine {
     for (const violation of zeroBypassViolations) {
       criticalIssues.push({
         type: 'zero-bypass-violation',
-        severity: 'critical',
+        severity: 'error',
         description: violation.message,
         affectedRules: violation.conflictingRules.map(r => r.pattern),
         suggestedFix: 'Remove or modify the allow/ask rule to not overlap with deny rules'
@@ -799,7 +799,7 @@ export class ValidationEngine {
     for (const weak of weakPatterns) {
       criticalIssues.push({
         type: 'weak-pattern',
-        severity: 'high',
+        severity: 'medium',
         description: `Weak deny pattern detected: "${weak.original}"`,
         affectedRules: [weak.original],
         suggestedFix: 'Use more specific patterns to prevent bypasses'
@@ -834,7 +834,7 @@ export class ValidationEngine {
       if (!hasDenyRules) {
         criticalIssues.push({
           type: 'missing-deny',
-          severity: 'high',
+          severity: 'medium',
           description: 'No deny rules defined - security policy is too permissive',
           affectedRules: [],
           suggestedFix: 'Add deny rules for dangerous operations'

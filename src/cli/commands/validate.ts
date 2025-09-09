@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import type { ClaudeCodeConfiguration, ValidationResult } from '@/types';
 
-export async function validateCommand(configPath: string = '.claude_code_config.json'): Promise<void> {
+export async function handleValidate(configPath: string = '.claude_code_config.json'): Promise<void> {
   console.log(chalk.green('Validation placeholder - basic implementation'));
   
   const result: ValidationResult = {

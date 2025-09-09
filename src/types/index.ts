@@ -279,6 +279,8 @@ export interface ValidationWarning {
   location?: ErrorLocation;
   /** Additional context */
   context?: Record<string, unknown>;
+  /** Severity level */
+  severity?: 'high' | 'medium' | 'low';
 }
 
 /**
@@ -1162,6 +1164,9 @@ export interface SandboxResult<T> {
 // =============================================================================
 // Export all types for easy importing
 // =============================================================================
+
+// Types are already exported via their interface/type declarations above
+
 // Note: Additional type modules will be added as they are implemented
 // export * from './validation';
 // export * from './templates';  

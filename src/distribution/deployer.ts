@@ -763,4 +763,3 @@ interface RollbackOperation {
   data: any;
 }
 
-export { EnterpriseDeployer };

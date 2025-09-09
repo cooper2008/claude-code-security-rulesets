@@ -20,7 +20,7 @@ import type { SetupOptions, SetupResult } from '../setup/wizard';
 // Import command handlers
 import { handleInit, BUILT_IN_TEMPLATES, DEFAULT_CONFIGURATIONS } from './commands/init';
 import { handleGenerate } from './commands/generate';
-import { validateCommand } from './commands/validate';
+import { handleValidate } from './commands/validate';
 import { handleDeploy } from './commands/deploy';
 import { SecurityWizard } from '../setup/wizard';
 import { createAdapter, getSupportedTools, detectInstalledTools, AIToolType } from '../adapters/base-adapter';
@@ -203,7 +203,7 @@ function addCommands(program: Command): void {
     .option('--exit-code', 'exit with non-zero code on validation errors')
     .action(async (file, options) => {
       try {
-        await validateCommand(file);
+        await handleValidate(file);
       } catch (error) {
         handleCommandError(error, 'validate');
       }

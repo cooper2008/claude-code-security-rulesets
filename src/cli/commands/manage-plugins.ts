@@ -463,7 +463,7 @@ async function handleTestPlugin(pluginId: string, options: any): Promise<void> {
           );
           
           console.log(chalk.green(`✅ Generation completed`));
-          console.log(chalk.gray(`   Rules added: ${(generatedConfig.deny?.length || 0) + (generatedConfig.allow?.length || 0)}`));
+          console.log(chalk.gray(`   Rules added: ${(generatedConfig.permissions?.deny?.length || 0) + (generatedConfig.permissions?.allow?.length || 0)}`));
           break;
           
         case 'transformation':
@@ -570,7 +570,7 @@ async function handlePluginInfo(pluginId: string): Promise<void> {
  * Get plugin details from user input
  */
 async function getPluginDetails(options: any): Promise<PluginDetails> {
-  const questions: inquirer.QuestionCollection = [];
+  const questions: inquirer.DistinctQuestion[] = [];
 
   if (!options.name) {
     questions.push({

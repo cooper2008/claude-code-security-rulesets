@@ -657,4 +657,4 @@ function formatBytes(bytes: number): string {
 }
 
 // Export command handler
-export { handleEnterpriseDeploy };
+// Export is handled above by function declaration

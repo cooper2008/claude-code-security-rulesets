@@ -1,0 +1,95 @@
+[
+  {
+    "id": "registry-test",
+    "manifest": {
+      "id": "registry-test",
+      "name": "registry-test",
+      "version": "1.0.0",
+      "description": "Test plugin: registry-test",
+      "author": {
+        "name": "Unknown"
+      },
+      "category": "validation",
+      "types": [
+        "validation-rule"
+      ],
+      "apiVersion": "1.0.0",
+      "dependencies": [],
+      "permissions": {},
+      "entryPoints": {
+        "main": "index.js"
+      },
+      "tags": [
+        "claude-security-plugin"
+      ]
+    },
+    "sourcePath": "/app/tests/plugins/temp-plugins/registry-test",
+    "sourceType": "filesystem",
+    "registeredAt": "2025-09-09T02:55:57.740Z",
+    "updatedAt": "2025-09-09T02:55:57.740Z",
+    "hash": "fb7e0cb950678bda061a6c6539a7fe8568cb4e8ef73d6ee6ece077cff098a24d",
+    "status": "available"
+  },
+  {
+    "id": "template-plugin",
+    "manifest": {
+      "id": "template-plugin",
+      "name": "template-plugin",
+      "version": "1.0.0",
+      "description": "Test plugin: template-plugin",
+      "author": {
+        "name": "Unknown"
+      },
+      "category": "templates",
+      "types": [
+        "validation-rule"
+      ],
+      "apiVersion": "1.0.0",
+      "dependencies": [],
+      "permissions": {},
+      "entryPoints": {
+        "main": "index.js"
+      },
+      "tags": [
+        "claude-security-plugin"
+      ]
+    },
+    "sourcePath": "/app/tests/plugins/temp-plugins/template-plugin",
+    "sourceType": "filesystem",
+    "registeredAt": "2025-09-09T02:55:57.753Z",
+    "updatedAt": "2025-09-09T02:55:57.753Z",
+    "hash": "81a4c94813e226a1e9755616b55badf6681d899eeb60d5fd450f014810d0e3c9",
+    "status": "available"
+  },
+  {
+    "id": "validation-plugin",
+    "manifest": {
+      "id": "validation-plugin",
+      "name": "validation-plugin",
+      "version": "1.0.0",
+      "description": "Test plugin: validation-plugin",
+      "author": {
+        "name": "Unknown"
+      },
+      "category": "validation",
+      "types": [
+        "validation-rule"
+      ],
+      "apiVersion": "1.0.0",
+      "dependencies": [],
+      "permissions": {},
+      "entryPoints": {
+        "main": "index.js"
+      },
+      "tags": [
+        "claude-security-plugin"
+      ]
+    },
+    "sourcePath": "/app/tests/plugins/temp-plugins/validation-plugin",
+    "sourceType": "filesystem",
+    "registeredAt": "2025-09-09T02:55:57.755Z",
+    "updatedAt": "2025-09-09T02:55:57.755Z",
+    "hash": "f1c7e9226a9bb277a17060e37fb1585416b32b47a37145706caf4260ee16d396",
+    "status": "available"
+  }
+]

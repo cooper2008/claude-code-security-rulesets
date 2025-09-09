@@ -36,7 +36,7 @@ export class SchemaValidator {
           column: 0
         },
         context: { schema: error.schemaPath },
-        severity: 'high' as const
+        severity: 'warning' as const
       })),
       warnings: [],
       conflicts: [],
