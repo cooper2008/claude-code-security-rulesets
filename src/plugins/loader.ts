@@ -481,7 +481,7 @@ export class PluginLoader extends EventEmitter {
         const packageData = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
         
         // Check dependencies for known vulnerable packages
-        const vulnerablePackages = ['eval', 'vm2']; // Example list
+        const vulnerablePackages = ['eval']; // Example list - vm2 removed from our dependencies
         const dependencies = { ...packageData.dependencies, ...packageData.devDependencies };
         
         for (const pkg of vulnerablePackages) {

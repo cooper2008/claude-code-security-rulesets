@@ -1,5 +1,23 @@
-import { VM } from 'vm2';
+// NOTE: vm2 removed due to security vulnerability (GHSA-cchq-frgv-rjh5, GHSA-g644-9gfx-q4q4)
+// Sandbox functionality temporarily disabled until secure alternative is implemented
 import { performance } from 'perf_hooks';
+
+// Temporary stub to replace vm2 functionality
+class DisabledVM {
+  constructor(config: any) {
+    // VM disabled due to security vulnerability
+  }
+  
+  run(code: string): never {
+    throw new Error('Sandbox functionality disabled due to vm2 security vulnerability. Use alternative execution environment.');
+  }
+  
+  freeze(value: any, key: string): void {
+    // No-op implementation
+  }
+}
+
+const VM = DisabledVM;
 
 /**
  * Sandbox configuration for safe plugin execution
