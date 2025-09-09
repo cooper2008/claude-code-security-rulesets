@@ -128,10 +128,62 @@ config/local.json
 config/development.json
 config/test.json
 
-# Security files
+# Security files - NEVER commit these!
 *.pem
 *.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.csr
+*.jks
+*.keystore
 secrets/
+private/
+.secrets/
+.private/
+
+# Environment and configuration files with potential secrets
+.env*
+!.env.example
+!.env.template
+**/local.json
+**/production.json
+**/staging.json
+config/secrets.json
+config/credentials.json
+auth.json
+credentials.json
+
+# API keys and tokens
+**/api-keys.json
+**/tokens.json
+**/*-token.json
+**/*-key.json
+**/*-secret.json
+**/*-password.json
+
+# Database credentials
+database.json
+db-config.json
+connection-string.json
+
+# Cloud provider credentials
+aws-credentials.json
+gcp-credentials.json
+azure-credentials.json
+.aws/
+.gcp/
+.azure/
+
+# SSH and GPG keys
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.pub
+.ssh/
+.gnupg/
 
 # Development artifacts
 test-config.json
@@ -139,6 +191,11 @@ test-config.json
 *.bak
 *.tmp
 *.temp
+
+# Test and plugin cache directories
+test-cache/
+test-plugin-cache/
+.serena/cache/
 
 # Documentation artifacts
 claude-code-*.md
@@ -149,3 +206,45 @@ claude-code-*.md
 # Workflow artifacts
 .spec-workflow/
 .bmad/
+
+# Claude Code specific
+.claude/settings.local.json
+
+# Additional OS artifacts
+.DS_Store
+.DS_Store?
+._*
+.Trashes
+.fseventsd
+.Spotlight-V100
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Additional Windows artifacts
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Additional development artifacts
+*.pid
+*.seed
+*.pid.lock
+.npm
+.yarn-integrity
+
+# Additional IDE artifacts
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/*.code-snippets
+
+# Coverage reports and test outputs
+*.lcov
+.nyc_output/
+test-results/
+junit.xml
+coverage/
