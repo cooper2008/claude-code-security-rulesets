@@ -5,6 +5,9 @@
 
 import chalk from 'chalk';
 import inquirer from 'inquirer';
+import { join } from 'path';
+import { homedir } from 'os';
+import process from 'process';
 import { Scanner, ScanResult } from './scanner';
 import { Explainer } from './explainer';
 import { RuleApplier } from './applier';
@@ -169,17 +172,37 @@ export class SecurityWizard {
     console.log(chalk.gray(`   • ${projectFiles.length} project files`));
     console.log(chalk.gray(`   • ${personalFiles.length} personal files`));
     
-    // Show what configuration files would be created (enhanced with level explanations)
-    console.log(chalk.cyan('\n📄 Configuration files that would be created/updated:'));
-    console.log(chalk.gray('   Claude Code settings:'));
+    // Show what configuration files would be created (enhanced with Claude Code documentation)
+    console.log(chalk.cyan('\n📄 Claude Code settings that would be created/updated:'));
+    console.log(chalk.dim('   (Based on Claude Code settings precedence hierarchy)\n'));
+    
     if (personalFiles.length > 0) {
-      console.log(chalk.gray(`     • ${chalk.bold('~/.claude/settings.json')} → 🌐 Global user settings (affects all projects)`));
-      console.log(chalk.gray(`       Protects ${personalFiles.length} personal files (.ssh, .aws, credentials, etc.)`));
+      console.log(chalk.blue.bold('   🌐 Global User Settings'));
+      console.log(chalk.gray(`      Path: ${chalk.bold('~/.claude/settings.json')}`));
+      console.log(chalk.gray('      Scope: Applies to ALL projects for this user'));
+      console.log(chalk.gray(`      Purpose: Protects ${personalFiles.length} personal files (.ssh, .aws, credentials)`));
+      console.log(chalk.gray('      Precedence: 5 (lowest - overridden by more specific settings)\n'));
     }
+    
     if (projectFiles.length > 0) {
-      console.log(chalk.gray(`     • ${chalk.bold('.claude/settings.json')} → 📁 Shared project settings (team)`));
-      console.log(chalk.gray(`     • ${chalk.bold('.claude/settings.local.json')} → 🔒 Personal project settings`));
-      console.log(chalk.gray(`       Protects ${projectFiles.length} project files (.env, config files, etc.)`));
+      console.log(chalk.yellow.bold('   🔒 Local Project Settings'));
+      console.log(chalk.gray(`      Path: ${chalk.bold('.claude/settings.local.json')}`));
+      console.log(chalk.gray('      Scope: Personal project-specific settings (git-ignored)'));
+      console.log(chalk.gray(`      Purpose: Protects ${projectFiles.length} project files (.env, config files)`));
+      console.log(chalk.gray('      Precedence: 3 (higher than shared project and user settings)\n'));
+      
+      const os = require('os');
+      const path = require('path');
+      const fs = require('fs');
+      const sharedProjectPath = path.join(process.cwd(), '.claude', 'settings.json');
+      
+      if (fs.existsSync(sharedProjectPath)) {
+        console.log(chalk.green.bold('   📁 Shared Project Settings (existing)'));
+        console.log(chalk.gray(`      Path: ${chalk.bold('.claude/settings.json')}`));
+        console.log(chalk.gray('      Scope: Shared with team, checked into version control'));
+        console.log(chalk.gray('      Status: Will be preserved (no changes made)'));
+        console.log(chalk.gray('      Precedence: 4 (lower than local project settings)\n'));
+      }
     }
     
     // Show which files would be protected
@@ -211,7 +234,7 @@ export class SecurityWizard {
       });
       
       // Show the actual configuration file content that would be created
-      this.showConfigurationPreview(scanResult);
+      this.showConfigurationPreview(scanResult, personalFiles, projectFiles);
     }
     
     return {
@@ -557,8 +580,9 @@ export class SecurityWizard {
       const { join } = require('path');
       const { homedir } = require('os');
       
-      const globalSettingsPath = join(homedir(), '.claude', 'settings.local.json');
-      const localSettingsPath = join(homedir(), '.claude', 'settings.json');
+      // Fixed: Align with Claude Code documentation
+      const globalSettingsPath = join(homedir(), '.claude', 'settings.json');
+      const localSettingsPath = join(process.cwd(), '.claude', 'settings.local.json');
       
       console.log(chalk.cyan('Configuration Files:'));
       
@@ -609,39 +633,42 @@ export class SecurityWizard {
   /**
    * Show configuration file preview for dry run
    */
-  private showConfigurationPreview(scanResult: ScanResult): void {
-    const criticalFiles = scanResult.files.filter(f => f.risk === 'CRITICAL');
-    const highFiles = scanResult.files.filter(f => f.risk === 'HIGH');
-    const mediumFiles = scanResult.files.filter(f => f.risk === 'MEDIUM');
+  private showConfigurationPreview(scanResult: ScanResult, personalFiles?: any[], projectFiles?: any[]): void {
+    if (!personalFiles && !projectFiles) {
+      // Legacy call without file separation - extract from scanResult
+      const criticalFiles = scanResult.files.filter(f => f.risk === 'CRITICAL');
+      personalFiles = criticalFiles.filter(f => f.scope === 'personal');
+      projectFiles = criticalFiles.filter(f => f.scope === 'project');
+    }
     
-    // Generate rules by category
-    const denyRules = [...new Set(criticalFiles.map(f => f.suggestedRule))].filter(Boolean);
-    const askRules = [...new Set([
-      ...highFiles.map(f => f.suggestedRule),
-      ...mediumFiles.map(f => f.suggestedRule)
-    ])].filter(Boolean);
-    
-    // Common allow rules for typical development files
-    const allowRules = [
-      'Read(**/*.{js,ts,jsx,tsx,py,java,cpp,c,h})',
-      'Read(**/*.{json,yaml,yml,xml})',
-      'Read(**/*.{md,txt,rst})',
-      'Read(**/package.json)',
-      'Read(**/requirements.txt)',
-      'Read(**/Cargo.toml)',
-      'Read(**/pom.xml)',
-      'Read(**/build.gradle)',
-      'Write(**/src/**)',
-      'Write(**/tests/**)',
-      'Write(**/docs/**)'
-    ];
+    console.log(chalk.cyan('\n📄 Claude Code Settings Preview:'));
+    console.log(chalk.dim('   (Actual JSON configurations that would be created)'));
 
-    console.log(chalk.cyan('\n📄 Configuration File Preview (settings.local.json):'));
-    console.log(chalk.gray('─'.repeat(80)));
+    // Show global settings if personal files exist
+    if (personalFiles && personalFiles.length > 0) {
+      console.log(chalk.blue.bold('\n   🌐 ~/.claude/settings.json (Global User Settings):'));
+      this.showSettingsPreview(personalFiles, 'global');
+    }
+
+    // Show local project settings if project files exist
+    if (projectFiles && projectFiles.length > 0) {
+      console.log(chalk.yellow.bold('\n   🔒 .claude/settings.local.json (Local Project Settings):'));
+      this.showSettingsPreview(projectFiles, 'local');
+    }
+  }
+
+  /**
+   * Show individual settings file preview
+   */
+  private showSettingsPreview(files: any[], settingsType: 'global' | 'local'): void {
+    // Generate rules from files
+    const denyRules = [...new Set(files.map(f => f.suggestedRule))].filter(Boolean);
+    
+    console.log(chalk.gray('─'.repeat(60)));
     console.log(chalk.white('{'));
     console.log(chalk.white('  "permissions": {'));
     
-    // Show deny section
+    // Show deny rules
     console.log(chalk.red('    "deny": ['));
     if (denyRules.length > 0) {
       denyRules.forEach((rule, index) => {
@@ -649,68 +676,28 @@ export class SecurityWizard {
         console.log(chalk.red(`      "${rule}"${comma}`));
       });
     } else {
-      console.log(chalk.gray('      // No critical files found - no deny rules needed'));
+      console.log(chalk.gray('      // No critical files found'));
     }
     console.log(chalk.red('    ],'));
     
-    // Show ask section
-    console.log(chalk.yellow('    "ask": ['));
-    if (askRules.length > 0) {
-      askRules.slice(0, 5).forEach((rule, index) => {
-        const comma = index < Math.min(askRules.length, 5) - 1 ? ',' : '';
-        console.log(chalk.yellow(`      "${rule}"${comma}`));
-      });
-      if (askRules.length > 5) {
-        console.log(chalk.dim(`      // ... and ${askRules.length - 5} more ask rules`));
-      }
-    } else {
-      console.log(chalk.gray('      // No high/medium risk files - using default ask rules'));
-      console.log(chalk.yellow('      "Bash(sudo *)",'));
-      console.log(chalk.yellow('      "Bash(rm -rf *)",'));
-      console.log(chalk.yellow('      "Write(/etc/**)"'));
-    }
-    console.log(chalk.yellow('    ],'));
+    // Show ask rules (empty for now - we use deny for critical files)
+    console.log(chalk.yellow('    "ask": [],'));
     
-    // Show allow section
-    console.log(chalk.green('    "allow": ['));
-    allowRules.slice(0, 6).forEach((rule, index) => {
-      const comma = index < 5 ? ',' : '';
-      console.log(chalk.green(`      "${rule}"${comma}`));
-    });
-    if (allowRules.length > 6) {
-      console.log(chalk.dim(`      // ... and ${allowRules.length - 6} more allow rules`));
-    }
-    console.log(chalk.green('    ]'));
+    // Show allow rules (empty - we don't restrict normal files)
+    console.log(chalk.green('    "allow": []'));
     
     console.log(chalk.white('  },'));
+    
+    // Add metadata
     console.log(chalk.white('  "metadata": {'));
-    console.log(chalk.white('    "version": "1.0.0",'));
-    console.log(chalk.white(`    "timestamp": ${Date.now()},`));
-    console.log(chalk.white('    "generatedBy": "claude-security setup",'));
-    console.log(chalk.white(`    "totalFilesScanned": ${scanResult.files.length},`));
-    console.log(chalk.white(`    "criticalFilesFound": ${criticalFiles.length},`));
-    console.log(chalk.white(`    "highRiskFilesFound": ${highFiles.length},`));
-    console.log(chalk.white(`    "projectType": "${scanResult.projectType}"`));
+    console.log(chalk.gray(`    "lastUpdated": "${new Date().toISOString()}",`));
+    console.log(chalk.gray(`    "source": "claude-security-rulesets-${settingsType}",`));
+    console.log(chalk.gray('    "version": "1.1.2",'));
+    console.log(chalk.gray(`    "settingsType": "${settingsType}",`));
+    console.log(chalk.gray(`    "protectedFiles": ${files.length}`));
     console.log(chalk.white('  }'));
+    
     console.log(chalk.white('}'));
-    console.log(chalk.gray('─'.repeat(80)));
-    
-    // Show rule explanations
-    console.log(chalk.cyan('\n💡 Rule Explanations:'));
-    console.log(chalk.red.bold('   DENY:') + chalk.gray(' Completely blocks access to critical files (SSH keys, credentials)'));
-    console.log(chalk.yellow.bold('   ASK:') + chalk.gray(' Requires permission before accessing potentially sensitive files'));
-    console.log(chalk.green.bold('   ALLOW:') + chalk.gray(' Permits access to common development files without asking'));
-    
-    if (criticalFiles.length > 0) {
-      console.log(chalk.cyan('\n🔐 Critical Files Being Protected:'));
-      const fileTypes = criticalFiles.reduce((acc, file) => {
-        acc[file.type] = (acc[file.type] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      Object.entries(fileTypes).forEach(([type, count]) => {
-        console.log(chalk.gray(`   • ${type}: ${count} file${count > 1 ? 's' : ''}`));
-      });
-    }
+    console.log(chalk.gray('─'.repeat(60)));
   }
 }

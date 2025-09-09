@@ -10,6 +10,7 @@ import { RuleApplier } from '../setup/applier';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
+import process from 'process';
 
 export class ClaudeCodeAdapter extends BaseAdapter {
   private ruleApplier: RuleApplier;
@@ -21,8 +22,11 @@ export class ClaudeCodeAdapter extends BaseAdapter {
     super('claude-code');
     this.ruleApplier = new RuleApplier();
     this.claudeDir = join(homedir(), '.claude');
-    this.globalSettingsPath = join(this.claudeDir, 'settings.local.json');
-    this.localSettingsPath = join(this.claudeDir, 'settings.json');
+    // Fixed: Align with Claude Code documentation
+    // Global settings (personal files across all projects): ~/.claude/settings.json
+    // Project settings (project-specific files): <project>/.claude/settings.local.json
+    this.globalSettingsPath = join(this.claudeDir, 'settings.json');
+    this.localSettingsPath = ''; // Will be set dynamically
   }
 
   async getToolInfo(): Promise<AIToolInfo> {
@@ -82,9 +86,10 @@ export class ClaudeCodeAdapter extends BaseAdapter {
   }> {
     const status = await this.ruleApplier.getProtectionStatus();
     
+    const localSettingsPath = join(process.cwd(), '.claude', 'settings.local.json');
     const configFiles = [];
     if (existsSync(this.globalSettingsPath)) configFiles.push(this.globalSettingsPath);
-    if (existsSync(this.localSettingsPath)) configFiles.push(this.localSettingsPath);
+    if (existsSync(localSettingsPath)) configFiles.push(localSettingsPath);
     
     return {
       isConfigured: status.globalRules > 0 || status.localRules > 0,
@@ -118,7 +123,8 @@ export class ClaudeCodeAdapter extends BaseAdapter {
     const warnings: string[] = [];
 
     // Check if settings files are readable and valid JSON
-    for (const configFile of [this.globalSettingsPath, this.localSettingsPath]) {
+    const localSettingsPath = join(process.cwd(), '.claude', 'settings.local.json');
+    for (const configFile of [this.globalSettingsPath, localSettingsPath]) {
       if (existsSync(configFile)) {
         try {
           const fs = require('fs');
@@ -155,7 +161,7 @@ export class ClaudeCodeAdapter extends BaseAdapter {
       documentationUrl: 'https://docs.anthropic.com/claude-code',
       configurationHelp: `Claude Code uses JSON configuration files:
 - Global settings: ${this.globalSettingsPath}
-- Local project settings: ${this.localSettingsPath}
+- Local project settings: <project>/.claude/settings.local.json
 
 Configuration format:
 {

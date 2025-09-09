@@ -39,29 +39,14 @@
     }
   },
   "include": [
-    "src/types/index.ts",
-    "src/adapters/base-adapter.ts",
-    "src/adapters/windsurf-adapter.ts",
-    "src/setup/scanner.ts",
-    "src/cli/index.ts",
-    "src/index.ts"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "tests/**/*",
     "**/*.test.ts",
-    "**/*.spec.ts",
-    "src/benchmark/**/*",
-    "src/cache/**/*",
-    "src/cli/commands/**/*",
-    "src/setup/explainer.ts",
-    "src/distribution/**/*",
-    "src/extensions/**/*",
-    "src/integrations/**/*",
-    "src/plugins/**/*",
-    "src/templates/**/*",
-    "src/validation/**/*"
+    "**/*.spec.ts"
   ],
   "ts-node": {
     "require": ["tsconfig-paths/register"]

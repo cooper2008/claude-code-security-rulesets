@@ -234,12 +234,34 @@ async function applyToClaudeCodeSettings(
 ): Promise<void> {
   const os = require('os');
   const path = require('path');
+  const fs = require('fs');
   
-  // Determine settings path based on scope
-  const scope = options.scope || 'global';
-  const claudeDir = path.join(os.homedir(), '.claude');
-  const settingsFileName = scope === 'local' ? 'settings.json' : 'settings.local.json';
-  const settingsPath = path.join(claudeDir, settingsFileName);
+  // Determine settings path based on scope - align with Claude Code documentation
+  const scope = options.scope || 'local'; // Default to local project settings
+  let settingsPath: string;
+  let settingsDescription: string;
+
+  if (scope === 'global') {
+    // Global user settings: ~/.claude/settings.json (affects ALL projects)
+    const claudeDir = path.join(os.homedir(), '.claude');
+    settingsPath = path.join(claudeDir, 'settings.json');
+    settingsDescription = 'global user settings (affects all projects)';
+    
+    // Ensure global claude directory exists
+    if (!existsSync(claudeDir)) {
+      fs.mkdirSync(claudeDir, { recursive: true });
+    }
+  } else {
+    // Local project settings: <project>/.claude/settings.local.json (personal, git-ignored)
+    const projectClaudeDir = path.join(process.cwd(), '.claude');
+    settingsPath = path.join(projectClaudeDir, 'settings.local.json');
+    settingsDescription = 'local project settings (personal, git-ignored)';
+    
+    // Ensure project claude directory exists
+    if (!existsSync(projectClaudeDir)) {
+      fs.mkdirSync(projectClaudeDir, { recursive: true });
+    }
+  }
   
   try {
     // Read existing settings
@@ -249,10 +271,19 @@ async function applyToClaudeCodeSettings(
       existingSettings = JSON.parse(settingsContent);
     }
     
-    // Convert our format to Claude Code format
+    // Convert our format to Claude Code format and merge with existing
     const claudeCodeSettings = convertToClaudeCodeFormat(config, existingSettings);
     
-    // Create backup
+    // Add deployment metadata
+    claudeCodeSettings.metadata = {
+      ...claudeCodeSettings.metadata,
+      lastDeployment: new Date().toISOString(),
+      deployedBy: process.env.USER || 'unknown',
+      source: 'claude-security-rulesets',
+      version: '1.1.2'
+    };
+    
+    // Create backup if settings exist
     if (existsSync(settingsPath)) {
       const backupPath = `${settingsPath}.backup.${Date.now()}`;
       writeFileSync(backupPath, readFileSync(settingsPath));
@@ -261,7 +292,8 @@ async function applyToClaudeCodeSettings(
     
     // Write new settings
     writeFileSync(settingsPath, JSON.stringify(claudeCodeSettings, null, 2));
-    console.log(chalk.green(`  ✅ Claude Code ${scope} settings updated: ${settingsPath}`));
+    console.log(chalk.green(`  ✅ Claude Code ${settingsDescription} updated`));
+    console.log(chalk.gray(`     Path: ${settingsPath}`));
     
   } catch (error) {
     console.error(chalk.red('❌ Failed to apply Claude Code settings:'));
@@ -395,14 +427,18 @@ async function getDeploymentConfirmation(
 function displayDeploymentPreview(
   config: ClaudeCodeConfiguration,
   environment: Environment,
-  configPath: string
+  configPath: string,
+  options?: DeployOptions
 ): void {
+  const os = require('os');
+  const path = require('path');
+
   console.log(chalk.yellow.bold('\n🔍 Deployment Preview (Dry Run)\n'));
   
   const envConfig = ENVIRONMENT_CONFIGS[environment];
   console.log(chalk.cyan('Deployment Details:'));
   console.log(chalk.gray(`  Source: ${configPath}`));
-  console.log(chalk.gray(`  Target: ${envConfig.displayName} (${environment})`));
+  console.log(chalk.gray(`  Target Environment: ${envConfig.displayName} (${environment})`));
   console.log(chalk.gray(`  Rules: ${(config.permissions?.deny?.length || 0)} deny, ${(config.permissions?.allow?.length || 0)} allow, ${(config.permissions?.ask?.length || 0)} ask`));
   
   if (config.metadata) {
@@ -410,14 +446,33 @@ function displayDeploymentPreview(
     console.log(chalk.gray(`  Template: ${config.metadata.templateId || 'custom'}`));
   }
   
+  // Show Claude Code settings target
+  const scope = options?.scope || 'local';
+  let targetPath: string;
+  let targetDescription: string;
+  
+  if (scope === 'global') {
+    targetPath = path.join(os.homedir(), '.claude', 'settings.json');
+    targetDescription = '🌐 Global user settings (affects ALL projects)';
+  } else {
+    targetPath = path.join(process.cwd(), '.claude', 'settings.local.json');
+    targetDescription = '🔒 Local project settings (personal, git-ignored)';
+  }
+  
+  console.log(chalk.cyan('\nClaude Code Settings Target:'));
+  console.log(chalk.gray(`  ${targetDescription}`));
+  console.log(chalk.gray(`  Path: ${targetPath}`));
+  console.log(chalk.gray(`  Existing: ${existsSync(targetPath) ? 'Yes (will be merged)' : 'No (will be created)'}`));
+  
   console.log(chalk.cyan('\nDeployment Steps:'));
   console.log(chalk.gray('  1. Validate configuration'));
-  console.log(chalk.gray('  2. Create backup (if enabled)'));
-  console.log(chalk.gray('  3. Upload configuration'));
-  console.log(chalk.gray('  4. Apply to Claude Code settings'));
-  console.log(chalk.gray('  5. Verify deployment'));
+  console.log(chalk.gray('  2. Create backup (if settings exist)'));
+  console.log(chalk.gray('  3. Read existing Claude Code settings'));
+  console.log(chalk.gray('  4. Merge with new rules (preserving existing)'));
+  console.log(chalk.gray('  5. Write updated settings'));
+  console.log(chalk.gray('  6. Verify deployment'));
   
-  console.log(chalk.yellow('\nNo changes will be made (dry run mode)'));
+  console.log(chalk.yellow.bold('\n⚠️  No changes will be made (dry run mode)'));
 }
 
 /**
@@ -597,7 +652,7 @@ export async function handleDeploy(file: string | undefined, options: DeployOpti
     
     // Dry run preview
     if (dryRun) {
-      displayDeploymentPreview(config, environment, configPath);
+      displayDeploymentPreview(config, environment, configPath, options);
       return;
     }
     

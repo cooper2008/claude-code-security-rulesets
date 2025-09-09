@@ -3,9 +3,10 @@
  * Applies security rules to Claude Code settings with backups
  */
 
-import { readFileSync, writeFileSync, existsSync, copyFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, copyFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
+import process from 'process';
 import { ScanResult, ScanFile } from './scanner';
 import { ClaudeCodeConfiguration } from '../types';
 import { formatDuration, formatConfigLevel } from '../utils/formatters';
@@ -25,13 +26,14 @@ export interface RuleApplicationResult {
 }
 
 export interface ConfigurationDiff {
-  level: 'global' | 'local';
+  level: 'global' | 'shared' | 'local';
   exists: boolean;
   newRules: string[];
   existingRules: string[];
   removedRules: string[];
   unchangedRules: string[];
   filePath: string;
+  settingsType: 'user' | 'shared-project' | 'local-project';
 }
 
 export interface PreviewResult {
@@ -52,8 +54,39 @@ export class RuleApplier {
 
   constructor() {
     this.claudeDir = join(homedir(), '.claude');
-    this.globalSettingsPath = join(this.claudeDir, 'settings.local.json');
-    this.localSettingsPath = join(this.claudeDir, 'settings.json');
+    // Align with Claude Code documentation:
+    // Global User Settings: ~/.claude/settings.json (applies to ALL projects)
+    // Shared Project Settings: .claude/settings.json (checked into source control)
+    // Local Project Settings: .claude/settings.local.json (personal, git-ignored)
+    this.globalSettingsPath = join(this.claudeDir, 'settings.json');
+    this.localSettingsPath = ''; // Will be set dynamically based on project location
+    
+    // Ensure global Claude directory exists
+    if (!existsSync(this.claudeDir)) {
+      mkdirSync(this.claudeDir, { recursive: true });
+    }
+  }
+
+  /**
+   * Get project settings paths
+   */
+  private getProjectSettingsPaths(): { shared: string; local: string; directory: string } {
+    const projectClaudeDir = join(process.cwd(), '.claude');
+    return {
+      directory: projectClaudeDir,
+      shared: join(projectClaudeDir, 'settings.json'),
+      local: join(projectClaudeDir, 'settings.local.json')
+    };
+  }
+
+  /**
+   * Ensure project claude directory exists
+   */
+  private ensureProjectDirectoryExists(): void {
+    const { directory } = this.getProjectSettingsPaths();
+    if (!existsSync(directory)) {
+      mkdirSync(directory, { recursive: true });
+    }
   }
 
   /**
@@ -91,7 +124,8 @@ export class RuleApplier {
   }
 
   /**
-   * Apply global rules to Claude Code global settings
+   * Apply global rules to Claude Code user settings
+   * Uses global user settings (~/.claude/settings.json) for personal files across all projects
    */
   private async applyGlobalRules(personalFiles: ScanFile[]): Promise<number> {
     // Create backup first
@@ -106,6 +140,14 @@ export class RuleApplier {
     // Merge with existing settings
     globalSettings = this.mergeRules(globalSettings, newRules);
 
+    // Add metadata for traceability
+    globalSettings.metadata = {
+      ...globalSettings.metadata,
+      lastUpdated: new Date().toISOString(),
+      source: 'claude-security-rulesets-global',
+      version: '1.1.2'
+    };
+
     // Write updated settings
     this.writeClaudeSettings(this.globalSettingsPath, globalSettings);
 
@@ -113,16 +155,20 @@ export class RuleApplier {
   }
 
   /**
-   * Apply local rules to Claude Code local settings  
+   * Apply local rules to Claude Code project settings
+   * Uses local project settings (.claude/settings.local.json) for personal project-specific rules
    */
   private async applyLocalRules(projectFiles: ScanFile[]): Promise<number> {
+    this.ensureProjectDirectoryExists();
+    const { local: localSettingsPath } = this.getProjectSettingsPaths();
+
     // Create backup if local settings exist
-    if (existsSync(this.localSettingsPath)) {
-      this.createBackup(this.localSettingsPath);
+    if (existsSync(localSettingsPath)) {
+      this.createBackup(localSettingsPath);
     }
 
     // Read existing local settings
-    let localSettings = this.readClaudeSettings(this.localSettingsPath);
+    let localSettings = this.readClaudeSettings(localSettingsPath);
 
     // Generate rules from project files
     const newRules = this.generateRulesFromFiles(projectFiles);
@@ -130,8 +176,16 @@ export class RuleApplier {
     // Merge with existing settings
     localSettings = this.mergeRules(localSettings, newRules);
 
+    // Add metadata for traceability
+    localSettings.metadata = {
+      ...localSettings.metadata,
+      lastUpdated: new Date().toISOString(),
+      source: 'claude-security-rulesets-local',
+      version: '1.1.2'
+    };
+
     // Write updated settings
-    this.writeClaudeSettings(this.localSettingsPath, localSettings);
+    this.writeClaudeSettings(localSettingsPath, localSettings);
 
     return newRules.deny.length + newRules.ask.length;
   }
@@ -318,8 +372,9 @@ export class RuleApplier {
     }
 
     // Check local settings
-    if (existsSync(this.localSettingsPath)) {
-      const localSettings = this.readClaudeSettings(this.localSettingsPath);  
+    const { local: localSettingsPath } = this.getProjectSettingsPaths();
+    if (existsSync(localSettingsPath)) {
+      const localSettings = this.readClaudeSettings(localSettingsPath);  
       status.localRules = (localSettings.permissions?.deny?.length || 0) +
                          (localSettings.permissions?.ask?.length || 0);
     }
@@ -388,7 +443,18 @@ export class RuleApplier {
    * Generate configuration diff for a specific level
    */
   private async generateConfigDiff(level: 'global' | 'local', files: ScanFile[]): Promise<ConfigurationDiff> {
-    const settingsPath = level === 'global' ? this.globalSettingsPath : this.localSettingsPath;
+    let settingsPath: string;
+    let settingsType: 'user' | 'shared-project' | 'local-project';
+
+    if (level === 'global') {
+      settingsPath = this.globalSettingsPath;
+      settingsType = 'user';
+    } else {
+      const { local } = this.getProjectSettingsPaths();
+      settingsPath = local;
+      settingsType = 'local-project';
+    }
+    
     const exists = existsSync(settingsPath);
     
     // Generate new rules from files
@@ -409,8 +475,8 @@ export class RuleApplier {
       // Find unchanged rules (rules that exist in both old and new)
       unchangedRules = existingRules.filter(rule => newRules.includes(rule));
       
-      // Find removed rules (rules that exist in old but not in new)
-      removedRules = existingRules.filter(rule => !newRules.includes(rule));
+      // Note: We don't remove existing rules - we only add new ones for safety
+      // In the future, this could be enhanced with user confirmation
     }
 
     // Find truly new rules (rules that don't exist in current config)
@@ -421,9 +487,10 @@ export class RuleApplier {
       exists,
       newRules: actuallyNewRules,
       existingRules,
-      removedRules,
+      removedRules, // Currently empty - we preserve existing rules
       unchangedRules,
-      filePath: settingsPath
+      filePath: settingsPath,
+      settingsType
     };
   }
 
@@ -455,28 +522,46 @@ export class RuleApplier {
    * Display individual configuration diff
    */
   private displayDiff(diff: ConfigurationDiff): void {
-    const levelDisplay = formatConfigLevel(diff.level);
+    const chalk = require('chalk');
+    let levelDisplay = '';
+    let settingsDescription = '';
+
+    switch (diff.settingsType) {
+      case 'user':
+        levelDisplay = chalk.blue.bold('🌐 Global User Settings');
+        settingsDescription = 'Applies to all projects for this user';
+        break;
+      case 'shared-project':
+        levelDisplay = chalk.green.bold('📁 Shared Project Settings');
+        settingsDescription = 'Shared with team, checked into version control';
+        break;
+      case 'local-project':
+        levelDisplay = chalk.yellow.bold('🔒 Local Project Settings');
+        settingsDescription = 'Personal project settings (git-ignored)';
+        break;
+    }
     
     console.log(`\n${levelDisplay}`);
-    console.log(`   Path: ${diff.filePath}`);
-    console.log(`   Status: ${diff.exists ? 'EXISTS (will update)' : 'NEW (will create)'}`);
+    console.log(chalk.gray(`   ${settingsDescription}`));
+    console.log(chalk.gray(`   Path: ${diff.filePath}`));
+    console.log(chalk.gray(`   Status: ${diff.exists ? 'EXISTS (will update)' : 'NEW (will create)'}`));
     
     if (diff.newRules.length > 0) {
-      console.log(`   ✅ Adding ${diff.newRules.length} new rules:`);
-      diff.newRules.forEach(rule => console.log(`      + ${rule}`));
+      console.log(chalk.green(`   ✅ Adding ${diff.newRules.length} new rules:`));
+      diff.newRules.forEach(rule => console.log(chalk.green(`      + ${rule}`)));
     }
     
     if (diff.unchangedRules.length > 0) {
-      console.log(`   ↔️  Keeping ${diff.unchangedRules.length} existing rules unchanged`);
+      console.log(chalk.gray(`   ↔️  Keeping ${diff.unchangedRules.length} existing rules unchanged`));
     }
     
     if (diff.removedRules.length > 0) {
-      console.log(`   ❌ Removing ${diff.removedRules.length} obsolete rules:`);
-      diff.removedRules.forEach(rule => console.log(`      - ${rule}`));
+      console.log(chalk.red(`   ❌ Would remove ${diff.removedRules.length} rules (currently disabled for safety):`));
+      diff.removedRules.forEach(rule => console.log(chalk.red(`      - ${rule}`)));
     }
 
     if (diff.newRules.length === 0 && diff.removedRules.length === 0) {
-      console.log('   ✅ No changes needed');
+      console.log(chalk.green('   ✅ No changes needed'));
     }
   }
 
@@ -491,7 +576,8 @@ export class RuleApplier {
     }
     
     if (scope === 'local' || scope === 'both') {
-      resetPaths.push(this.localSettingsPath);
+      const { local } = this.getProjectSettingsPaths();
+      resetPaths.push(local);
     }
 
     for (const settingsPath of resetPaths) {

@@ -219,7 +219,7 @@ function addCommands(program: Command): void {
     .option('--force', 'skip confirmation prompts')
     .option('--rollback', 'rollback to previous deployment')
     .option('--status', 'check deployment status')
-    .option('--scope <scope>', 'deployment scope: global (settings.local.json) or local (settings.json)', 'global')
+    .option('--scope <scope>', 'deployment scope: global (settings.json) or local (settings.local.json)', 'global')
     .action(async (file, options) => {
       try {
         await handleDeploy(file, options);
@@ -967,10 +967,10 @@ async function showDryRunConfigFiles(adapter: any, aiTool: AIToolType, projectFi
     case 'claude-code':
       console.log(chalk.gray('   Claude Code settings:'));
       if (personalFiles.length > 0) {
-        console.log(chalk.gray(`     • ~/.claude/settings.local.json → Global rules (${personalFiles.length} files)`));
+        console.log(chalk.gray(`     • ~/.claude/settings.json → Global rules (${personalFiles.length} files)`));
       }
       if (projectFiles.length > 0) {
-        console.log(chalk.gray(`     • ~/.claude/settings.json → Local project rules (${projectFiles.length} files)`));
+        console.log(chalk.gray(`     • ./.claude/settings.local.json → Local project rules (${projectFiles.length} files)`));
       }
       break;
       
