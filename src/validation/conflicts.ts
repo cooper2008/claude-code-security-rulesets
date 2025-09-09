@@ -12,7 +12,7 @@ import {
   ConflictingRule,
   ResolutionSuggestion,
   ValidationError
-} from '../types';
+} from '../types/index';
 
 import {
   NormalizedRule,

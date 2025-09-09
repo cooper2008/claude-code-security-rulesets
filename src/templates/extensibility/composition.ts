@@ -7,7 +7,7 @@ import {
   TemplateBuildContext,
   TemplateValidationResult
 } from './types';
-import { ClaudeCodeConfiguration } from '../../types';
+import { ClaudeCodeConfiguration } from '../../types/index';
 
 /**
  * Template composition engine for merging multiple templates

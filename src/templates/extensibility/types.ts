@@ -1,4 +1,4 @@
-import { SecurityTemplate, ClaudeCodeConfiguration } from '../../types';
+import { SecurityTemplate, ClaudeCodeConfiguration } from '../../types/index';
 
 /**
  * Template inheritance chain levels

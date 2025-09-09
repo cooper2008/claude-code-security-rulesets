@@ -1,0 +1,36 @@
+{
+  "id": "conflicting-template",
+  "name": "Conflicting Template",
+  "version": "1.0.0",
+  "category": "development",
+  "description": "Template with conflicting rules for testing",
+  "compliance": [],
+  "tags": [
+    "test",
+    "conflict"
+  ],
+  "isBuiltIn": false,
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "rules": {
+    "permissions": {
+      "deny": [
+        "**/secret*/**",
+        "Execute(*)"
+      ],
+      "allow": [
+        "Execute(git)",
+        "Read(**/secret*/public/**)"
+      ],
+      "ask": [
+        "Execute(npm)"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1757391045617,
+      "templateId": "conflicting-template",
+      "name": "Conflicting Template"
+    }
+  }
+}

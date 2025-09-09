@@ -214,8 +214,8 @@ export class FilterEngine {
       'machine-type': target.metadata.machine?.type,
       environment: target.metadata.environment?.type,
       project: target.metadata.tags?.project,
-      'skill-level': target.metadata.developer?.skillLevel || target.metadata.tags?.['skill-level'],
-      'access-level': target.metadata.developer?.accessLevel || target.metadata.tags?.['access-level']
+      'skill-level': target.metadata.tags?.['skill-level'],
+      'access-level': target.metadata.tags?.['access-level']
     };
 
     return fieldMap[field];

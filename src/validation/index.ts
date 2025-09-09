@@ -24,12 +24,12 @@ export type {
   SecurityImpact,
   ConflictType,
   ResolutionStrategy
-} from '../types';
+} from '../types/index';
 
 /**
  * Quick validation helper for simple use cases
  */
-import { ClaudeCodeConfiguration, ValidationResult } from '../types';
+import { ClaudeCodeConfiguration, ValidationResult } from '../types/index';
 import { validationEngine } from './engine';
 
 export async function validateConfiguration(

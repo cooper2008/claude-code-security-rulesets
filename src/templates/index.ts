@@ -50,7 +50,19 @@ export {
   type TemplateSearchResult
 } from './registry';
 
-// Re-export core types from main types module for convenience
+// Import and re-export core types from main types module for convenience
+import type {
+  SecurityTemplate,
+  TemplateParameter,
+  TemplateCategory,
+  ComplianceFramework,
+  Environment,
+  ClaudeCodeConfiguration
+} from '../types/index';
+
+// Import templateEngine for default export
+import { templateEngine } from './engine';
+
 export type {
   SecurityTemplate,
   TemplateParameter,
@@ -58,7 +70,7 @@ export type {
   ComplianceFramework,
   Environment,
   ClaudeCodeConfiguration
-} from '../types';
+};
 
 /**
  * Template system utilities and helpers

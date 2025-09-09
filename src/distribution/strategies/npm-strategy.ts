@@ -418,7 +418,7 @@ export class NpmStrategy implements IDistributionStrategy {
       const { auth } = target.connection;
       const npmConfig = target.connection.config as NpmConnectionConfig;
       
-      if (auth.method === 'api-key') {
+      if (auth.method === 'api-key' && auth.credentials.type === 'api-key') {
         const registryUrl = new URL(npmConfig.registryUrl);
         env[`NPM_TOKEN`] = auth.credentials.key;
         // Set registry-specific auth token

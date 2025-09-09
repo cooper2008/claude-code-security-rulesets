@@ -6,7 +6,7 @@ import {
   TemplateValidationResult,
   CompositionConfig
 } from './types';
-import { ClaudeCodeConfiguration } from '../../types';
+import { ClaudeCodeConfiguration } from '../../types/index';
 import { TemplateInheritanceEngine } from './inheritance';
 import { TemplateComposer } from './composition';
 import { TemplateValidator } from './validation';

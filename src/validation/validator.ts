@@ -1,4 +1,4 @@
-import { ClaudeCodeConfiguration, ValidationResult, SecurityTemplate } from '../types';
+import { ClaudeCodeConfiguration, ValidationResult, SecurityTemplate } from '../types/index';
 import { ValidationEngine } from './engine';
 
 /**

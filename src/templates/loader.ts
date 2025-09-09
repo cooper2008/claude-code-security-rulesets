@@ -6,13 +6,12 @@
 
 import { promises as fs } from 'fs';
 import { join, resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import {
   SecurityTemplate,
   TemplateCategory,
   ComplianceFramework,
   ClaudeCodeConfiguration
-} from '../types';
+} from '../types/index';
 
 /**
  * Template loading options
@@ -71,8 +70,8 @@ export class TemplateLoader {
   private builtInPath: string;
 
   constructor() {
-    // Set up built-in templates path
-    this.builtInPath = join(dirname(fileURLToPath(import.meta.url)), 'builtin');
+    // Set up built-in templates path using __dirname
+    this.builtInPath = join(__dirname, 'builtin');
   }
 
   /**

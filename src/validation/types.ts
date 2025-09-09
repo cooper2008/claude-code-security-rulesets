@@ -9,7 +9,7 @@ import {
   RuleConflict,
   ValidationError,
   ValidationWarning 
-} from '../types';
+} from '../types/index';
 
 /**
  * Rule pattern types for matching

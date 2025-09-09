@@ -7,7 +7,7 @@ import {
   CustomValidationRule,
   TemplateExtension
 } from './types';
-import { ClaudeCodeConfiguration } from '../../types';
+import { ClaudeCodeConfiguration } from '../../types/index';
 import { createSandbox } from './sandbox';
 
 /**

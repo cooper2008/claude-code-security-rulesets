@@ -22,7 +22,7 @@ import type {
 import type { ClaudeCodeConfiguration, ValidationResult } from '@/types';
 import { StrategyManager } from './strategies/manager';
 import { MonitoringService } from './monitoring';
-import { RollbackService } from './rollback';
+import { RollbackService, RollbackOperation } from './rollback';
 import { ProgressTracker } from './progress-tracker';
 import { HealthChecker } from './health-checker';
 import { NotificationService } from './notification';
@@ -409,7 +409,7 @@ export class EnterpriseDeployer extends EventEmitter {
       targetExecution.endTime = new Date();
       
       if (!result.success && result.error) {
-        targetExecution.error = result.error;
+        targetExecution.error = result.error.message || 'Deployment failed';
       }
 
       this.log(execution, result.success ? 'info' : 'error', 
@@ -756,10 +756,5 @@ interface TargetExecution {
   healthCheckResults: HealthCheckResult[];
 }
 
-interface RollbackOperation {
-  targetId: string;
-  operation: string;
-  timestamp: Date;
-  data: any;
-}
+// RollbackOperation is imported from './rollback'
 

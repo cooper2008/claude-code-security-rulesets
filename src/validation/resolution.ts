@@ -9,7 +9,7 @@ import {
   ResolutionSuggestion,
   ConflictingRule,
   ClaudeCodeConfiguration
-} from '../types';
+} from '../types/index';
 
 import { NormalizedRule } from './types';
 import { PatternAnalyzer } from './patterns';

@@ -129,7 +129,7 @@ export class MonitoringService extends EventEmitter {
     }
 
     if (this.deploymentStates.size === 0) {
-      this.stopMonitoring();
+      this.stopGlobalMonitoring();
     }
   }
 
@@ -330,7 +330,7 @@ export class MonitoringService extends EventEmitter {
     this.emit('monitoring-started');
   }
 
-  private stopMonitoring(): void {
+  private stopGlobalMonitoring(): void {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = undefined;

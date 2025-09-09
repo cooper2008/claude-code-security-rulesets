@@ -292,7 +292,9 @@ export class HealthChecker {
     
     try {
       // For local files, check directly
-      if (!context.target.connection.config.host || context.target.connection.config.host === 'localhost') {
+      const config = context.target.connection.config;
+      const isLocal = (config.type !== 'ssh') || (!('host' in config) || config.host === 'localhost');
+      if (isLocal) {
         const fs = require('fs');
         const exists = fs.existsSync(filePath);
         
@@ -332,7 +334,8 @@ export class HealthChecker {
       let configContent: string;
 
       // Read configuration file
-      if (!context.target.connection.config.host || context.target.connection.config.host === 'localhost') {
+      const config = context.target.connection.config;
+      if (!('host' in config) || !config.host || config.host === 'localhost') {
         configContent = readFileSync(configPath, 'utf8');
       } else {
         const result = await this.executeRemoteCommand(`cat "${configPath}"`, context);
@@ -343,9 +346,9 @@ export class HealthChecker {
       }
 
       // Validate JSON format
-      let config: ClaudeCodeConfiguration;
+      let parsedConfig: ClaudeCodeConfiguration;
       try {
-        config = JSON.parse(configContent);
+        parsedConfig = JSON.parse(configContent);
       } catch (parseError) {
         return {
           success: false,
@@ -354,7 +357,7 @@ export class HealthChecker {
       }
 
       // Validate configuration structure
-      const validationResult = this.validateConfigStructure(config, context.configuration);
+      const validationResult = this.validateConfigStructure(parsedConfig, context.configuration);
       
       return {
         success: validationResult.isValid,

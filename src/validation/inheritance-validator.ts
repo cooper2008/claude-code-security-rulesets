@@ -1,4 +1,4 @@
-import { ExtendableTemplate, TemplateValidationResult } from '../types';
+import { ExtendableTemplate, TemplateValidationResult } from '../types/index';
 
 /**
  * Validator for template inheritance chains

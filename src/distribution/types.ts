@@ -16,6 +16,7 @@ export type DistributionStrategy =
   | 'npm'
   | 'git'
   | 'ssh'
+  | 'http'
   | 'ci-cd'
   | 'config-mgmt'
   | 'package-mgr'
@@ -344,6 +345,7 @@ export interface HealthCheckConfig {
 
 export type HealthCheckType = 
   | 'http'
+  | 'ssh'
   | 'tcp'
   | 'command'
   | 'file-exists'
@@ -672,6 +674,7 @@ export type NotificationEvent =
   | 'deployment-started'
   | 'deployment-completed'
   | 'deployment-failed'
+  | 'deployment-cancelled'
   | 'rollback-started'
   | 'rollback-completed'
   | 'health-check-failed';

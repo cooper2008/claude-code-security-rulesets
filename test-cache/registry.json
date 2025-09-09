@@ -23,11 +23,11 @@
         "claude-security-plugin"
       ]
     },
-    "sourcePath": "/app/tests/plugins/temp-plugins/registry-test",
+    "sourcePath": "/Users/yiminguo/Documents/orgclauderules2/tests/plugins/temp-plugins/registry-test",
     "sourceType": "filesystem",
     "registeredAt": "2025-09-09T02:55:57.740Z",
-    "updatedAt": "2025-09-09T02:55:57.740Z",
-    "hash": "fb7e0cb950678bda061a6c6539a7fe8568cb4e8ef73d6ee6ece077cff098a24d",
+    "updatedAt": "2025-09-09T04:10:47.504Z",
+    "hash": "74edd9951756fe767c63840dce4e235096f0423ac1a5bd795d1898ed6df1d222",
     "status": "available"
   },
   {
@@ -54,11 +54,11 @@
         "claude-security-plugin"
       ]
     },
-    "sourcePath": "/app/tests/plugins/temp-plugins/template-plugin",
+    "sourcePath": "/Users/yiminguo/Documents/orgclauderules2/tests/plugins/temp-plugins/template-plugin",
     "sourceType": "filesystem",
     "registeredAt": "2025-09-09T02:55:57.753Z",
-    "updatedAt": "2025-09-09T02:55:57.753Z",
-    "hash": "81a4c94813e226a1e9755616b55badf6681d899eeb60d5fd450f014810d0e3c9",
+    "updatedAt": "2025-09-09T04:10:47.511Z",
+    "hash": "79afe603b0990c608afd916c411f00591c1ae4100677109631e5ae13f5f1c62d",
     "status": "available"
   },
   {
@@ -85,11 +85,11 @@
         "claude-security-plugin"
       ]
     },
-    "sourcePath": "/app/tests/plugins/temp-plugins/validation-plugin",
+    "sourcePath": "/Users/yiminguo/Documents/orgclauderules2/tests/plugins/temp-plugins/validation-plugin",
     "sourceType": "filesystem",
     "registeredAt": "2025-09-09T02:55:57.755Z",
-    "updatedAt": "2025-09-09T02:55:57.755Z",
-    "hash": "f1c7e9226a9bb277a17060e37fb1585416b32b47a37145706caf4260ee16d396",
+    "updatedAt": "2025-09-09T04:10:47.512Z",
+    "hash": "84d605a1347d226288c5a7aee005052f229956f8e0d3e60b664c4a955545cf59",
     "status": "available"
   }
 ]

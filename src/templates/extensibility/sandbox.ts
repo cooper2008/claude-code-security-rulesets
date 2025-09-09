@@ -58,7 +58,7 @@ export interface SandboxResult<T = unknown> {
  * Safe plugin execution sandbox using VM2
  */
 export class PluginSandbox {
-  private vm: VM;
+  private vm: InstanceType<typeof VM>;
   private config: SandboxConfig;
   private memoryTracker: MemoryTracker;
   private startTime: number = 0;

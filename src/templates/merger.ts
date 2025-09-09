@@ -7,7 +7,7 @@
 import {
   ClaudeCodeConfiguration,
   Environment
-} from '../types';
+} from '../types/index';
 import { mergeConfigurations, MergeContext, MergeResult } from '../config/merger';
 
 /**

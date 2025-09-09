@@ -1,4 +1,4 @@
-import { ClaudeCodeConfiguration, ValidationResult } from '../types';
+import { ClaudeCodeConfiguration, ValidationResult } from '../types/index';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
@@ -36,7 +36,7 @@ export class SchemaValidator {
           column: 0
         },
         context: { schema: error.schemaPath },
-        severity: 'warning' as const
+        severity: 'medium' as const
       })),
       warnings: [],
       conflicts: [],

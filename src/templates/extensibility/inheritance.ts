@@ -9,7 +9,7 @@ import {
   MergeStrategy,
   ConflictResolution
 } from './types';
-import { SecurityTemplate, ClaudeCodeConfiguration } from '../../types';
+import { SecurityTemplate, ClaudeCodeConfiguration } from '../../types/index';
 import { TemplateComposer } from './composition';
 import { TemplateValidator } from './validation';
 

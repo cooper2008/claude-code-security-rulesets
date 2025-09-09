@@ -13,6 +13,14 @@
  * - Safe sandboxing for custom code execution
  */
 
+// Import classes for internal use
+import { TemplateInheritanceEngine } from './inheritance';
+import { TemplateComposer } from './composition';
+import { TemplateValidator } from './validation';
+import { TemplatePluginManager } from './plugins';
+import { TemplateExtensionManager, ExtensionRegistryEntry } from './extension-manager';
+import { CustomTemplateBuilder } from './custom-builder';
+
 // Core types
 export * from './types';
 

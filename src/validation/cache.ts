@@ -4,7 +4,7 @@
  */
 
 import { createHash } from 'crypto';
-import { ClaudeCodeConfiguration, ValidationResult } from '../types';
+import { ClaudeCodeConfiguration, ValidationResult } from '../types/index';
 
 /**
  * Cache entry with metadata for invalidation and eviction

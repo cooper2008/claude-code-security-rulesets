@@ -9,9 +9,9 @@ import type {
   NotificationChannel,
   NotificationEvent,
   NotificationTemplate,
-  DeploymentProgress,
-  Alert
+  DeploymentProgress
 } from './types';
+import type { Alert } from './monitoring';
 
 /**
  * Notification message
@@ -557,6 +557,7 @@ Alert ID: {{alertId}}`,
       'deployment-started': `🚀 Deployment Started - ${data.deploymentId}`,
       'deployment-completed': `✅ Deployment Completed - ${data.deploymentId}`,
       'deployment-failed': `❌ Deployment Failed - ${data.deploymentId}`,
+      'deployment-cancelled': `⏹️ Deployment Cancelled - ${data.deploymentId}`,
       'rollback-started': `🔄 Rollback Started - ${data.deploymentId}`,
       'rollback-completed': `✅ Rollback Completed - ${data.deploymentId}`,
       'health-check-failed': `⚠️ Health Check Failed - ${data.targetName || 'Unknown Target'}`
@@ -570,6 +571,7 @@ Alert ID: {{alertId}}`,
       'deployment-started': 'medium',
       'deployment-completed': 'medium',
       'deployment-failed': 'high',
+      'deployment-cancelled': 'medium',
       'rollback-started': 'high',
       'rollback-completed': 'medium',
       'health-check-failed': 'high'

@@ -9,7 +9,7 @@ import {
   ConflictResolution,
   CompositionConfig
 } from './types';
-import { SecurityTemplate, ClaudeCodeConfiguration, TemplateParameter, ComplianceFramework } from '../../types';
+import { SecurityTemplate, ClaudeCodeConfiguration, TemplateParameter, ComplianceFramework } from '../../types/index';
 import { TemplateInheritanceEngine } from './inheritance';
 import { TemplateComposer } from './composition';
 import { TemplateValidator } from './validation';
@@ -356,15 +356,17 @@ export class CustomTemplateBuilder {
    * Build rules interactively
    */
   private async buildRulesInteractively(): Promise<ClaudeCodeConfiguration> {
-    const rules: ClaudeCodeConfiguration = { deny: [], allow: [] };
+    const rules: ClaudeCodeConfiguration = { 
+      permissions: { deny: [], allow: [] }
+    };
 
     console.log('\n🚫 Adding DENY rules (what to prohibit):');
     while (true) {
       const rule = await this.prompt('Enter deny rule (or press Enter to finish): ');
       if (!rule.trim()) break;
       
-      rules.deny = rules.deny || [];
-      rules.deny.push(rule);
+      rules.permissions!.deny = rules.permissions!.deny || [];
+      rules.permissions!.deny.push(rule);
     }
 
     console.log('\n✅ Adding ALLOW rules (what to permit):');
@@ -372,8 +374,8 @@ export class CustomTemplateBuilder {
       const rule = await this.prompt('Enter allow rule (or press Enter to finish): ');
       if (!rule.trim()) break;
       
-      rules.allow = rules.allow || [];
-      rules.allow.push(rule);
+      rules.permissions!.allow = rules.permissions!.allow || [];
+      rules.permissions!.allow.push(rule);
     }
 
     return rules;
@@ -576,7 +578,7 @@ export class CustomTemplateBuilder {
 
     const context: TemplateBuildContext = {
       environment: 'production',
-      parameters: config.parameters || {},
+      parameters: Array.isArray(config.parameters) ? {} : (config.parameters || {}),
       availableTemplates: Array.from(this.templates.values()),
       metadata: {
         buildId: this.generateId(),
@@ -618,7 +620,7 @@ export class CustomTemplateBuilder {
     return {
       id: this.generateId(),
       name: '',
-      category: 'security',
+      category: 'compliance',
       rules: { deny: [], allow: [] },
       description: '',
       compliance: [],
@@ -662,19 +664,26 @@ export class CustomTemplateBuilder {
    * Generate rules from project analysis
    */
   private generateRulesFromAnalysis(analysis: ProjectAnalysis): ClaudeCodeConfiguration {
-    const rules: ClaudeCodeConfiguration = { deny: [], allow: [] };
+    const rules: ClaudeCodeConfiguration = { 
+      permissions: { deny: [], allow: [] }
+    };
     
     // Add rules based on detected technologies
-    for (const tech of analysis.technologies) {
-      const techRules = this.getTechnologyRules(tech);
-      rules.deny = [...(rules.deny || []), ...(techRules.deny || [])];
-      rules.allow = [...(rules.allow || []), ...(techRules.allow || [])];
+    if (Array.isArray(analysis.technologies)) {
+      for (const tech of analysis.technologies) {
+        const techRules = this.getTechnologyRules(tech);
+        rules.permissions!.deny = [...(rules.permissions!.deny || []), ...(techRules.permissions?.deny || [])];
+        rules.permissions!.allow = [...(rules.permissions!.allow || []), ...(techRules.permissions?.allow || [])];
+      }
     }
     
     // Add rules based on security findings
-    for (const finding of analysis.securityFindings) {
-      const securityRules = this.getSecurityRules(finding);
-      rules.deny = [...(rules.deny || []), ...(securityRules.deny || [])];
+    if (Array.isArray(analysis.securityFindings)) {
+      for (const finding of analysis.securityFindings) {
+        const securityRules = this.getSecurityRules(finding);
+        rules.permissions!.deny = [...(rules.permissions!.deny || []), ...(securityRules.permissions?.deny || [])];
+        rules.permissions!.allow = [...(rules.permissions!.allow || []), ...(securityRules.permissions?.allow || [])];
+      }
     }
     
     return rules;
@@ -687,7 +696,7 @@ export class CustomTemplateBuilder {
     const frameworks: ComplianceFramework[] = [];
     
     if (analysis.hasPaymentProcessing) {
-      frameworks.push('PCI_DSS');
+      frameworks.push('PCI-DSS');
     }
     
     if (analysis.hasHealthData) {
@@ -735,20 +744,26 @@ export class CustomTemplateBuilder {
   private getTechnologyRules(technology: string): ClaudeCodeConfiguration {
     const rules: Record<string, ClaudeCodeConfiguration> = {
       'react': {
-        deny: ['dangerouslySetInnerHTML', 'eval('],
-        allow: ['useState', 'useEffect']
+        permissions: {
+          deny: ['dangerouslySetInnerHTML', 'eval('],
+          allow: ['useState', 'useEffect']
+        }
       },
       'node.js': {
-        deny: ['child_process.exec', 'eval('],
-        allow: ['process.env']
+        permissions: {
+          deny: ['child_process.exec', 'eval('],
+          allow: ['process.env']
+        }
       },
       'python': {
-        deny: ['exec(', 'eval('],
-        allow: ['os.environ']
+        permissions: {
+          deny: ['exec(', 'eval('],
+          allow: ['os.environ']
+        }
       }
     };
     
-    return rules[technology] || { deny: [], allow: [] };
+    return rules[technology] || { permissions: { deny: [], allow: [] } };
   }
 
   /**
@@ -757,20 +772,26 @@ export class CustomTemplateBuilder {
   private getSecurityRules(finding: SecurityFinding): ClaudeCodeConfiguration {
     const rules: Record<string, ClaudeCodeConfiguration> = {
       'sql-injection': {
-        deny: ['SELECT * FROM', 'DROP TABLE'],
-        allow: []
+        permissions: {
+          deny: ['SELECT * FROM', 'DROP TABLE'],
+          allow: []
+        }
       },
       'xss': {
-        deny: ['innerHTML =', 'document.write('],
-        allow: []
+        permissions: {
+          deny: ['innerHTML =', 'document.write('],
+          allow: []
+        }
       },
       'command-injection': {
-        deny: ['os.system(', 'subprocess.call('],
-        allow: []
+        permissions: {
+          deny: ['os.system(', 'subprocess.call('],
+          allow: []
+        }
       }
     };
     
-    return rules[finding.type] || { deny: [], allow: [] };
+    return rules[finding.type] || { permissions: { deny: [], allow: [] } };
   }
 
   /**
@@ -784,11 +805,13 @@ export class CustomTemplateBuilder {
     switch (rule.type) {
       case 'add-rule':
         if (rule.ruleType === 'deny') {
-          template.rules.deny = template.rules.deny || [];
-          template.rules.deny.push(rule.pattern);
+          template.rules.permissions = template.rules.permissions || { deny: [], allow: [] };
+          template.rules.permissions.deny = template.rules.permissions.deny || [];
+          template.rules.permissions.deny.push(rule.pattern);
         } else {
-          template.rules.allow = template.rules.allow || [];
-          template.rules.allow.push(rule.pattern);
+          template.rules.permissions = template.rules.permissions || { deny: [], allow: [] };
+          template.rules.permissions.allow = template.rules.permissions.allow || [];
+          template.rules.permissions.allow.push(rule.pattern);
         }
         break;
       
@@ -827,21 +850,21 @@ export class CustomTemplateBuilder {
     const optimized = { ...template };
     
     // Remove duplicate rules
-    if (optimized.rules.deny) {
-      optimized.rules.deny = [...new Set(optimized.rules.deny)];
+    if (optimized.rules.permissions?.deny) {
+      optimized.rules.permissions.deny = [...new Set(optimized.rules.permissions.deny)];
     }
     
-    if (optimized.rules.allow) {
-      optimized.rules.allow = [...new Set(optimized.rules.allow)];
+    if (optimized.rules.permissions?.allow) {
+      optimized.rules.permissions.allow = [...new Set(optimized.rules.permissions.allow)];
     }
     
     // Sort rules for consistency
-    if (optimized.rules.deny) {
-      optimized.rules.deny.sort();
+    if (optimized.rules.permissions?.deny) {
+      optimized.rules.permissions.deny.sort();
     }
     
-    if (optimized.rules.allow) {
-      optimized.rules.allow.sort();
+    if (optimized.rules.permissions?.allow) {
+      optimized.rules.permissions.allow.sort();
     }
     
     // Remove duplicate tags

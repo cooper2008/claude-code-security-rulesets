@@ -29,6 +29,7 @@ export interface ConfigurationSource {
  */
 export type ConfigurationLevel = 
   | 'enterprise'     // Managed policies (highest precedence)
+  | 'system'        // System-wide configuration
   | 'cli'           // Command line arguments  
   | 'project-local' // .claude/settings.local.json
   | 'project'       // .claude/settings.json

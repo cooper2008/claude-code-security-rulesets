@@ -12,8 +12,10 @@ import {
   ValidationError,
   ValidationWarning,
   TemplateCategory,
-  ComplianceFramework
-} from '../types';
+  ComplianceFramework,
+  TemplateValidator as ITemplateValidator,
+  TemplateValidationResult as ITemplateValidationResult
+} from '../types/index';
 import { validationEngine } from '../validation/engine';
 
 /**
@@ -35,7 +37,7 @@ export interface TemplateValidationOptions {
   /** Skip expensive validations */
   quick?: boolean;
   /** Custom validation rules */
-  customValidators?: TemplateValidator[];
+  customValidators?: ITemplateValidator[];
 }
 
 /**
@@ -1108,14 +1110,22 @@ export class TemplateValidator {
    */
   private async runCustomValidators(
     context: ValidationContext,
-    validators: TemplateValidator[]
+    validators: ITemplateValidator[]
   ): Promise<void> {
     context.checksPerformed.push('custom');
 
     for (const validator of validators) {
       try {
-        const result = await validator(context.template);
-        context.errors.push(...result.errors);
+        const result = await validator.validateTemplate(context.template);
+        // Convert TemplateValidationError to ValidationError
+        for (const error of result.errors) {
+          context.errors.push({
+            type: 'TEMPLATE_ERROR' as const,
+            message: error.message,
+            severity: 'medium' as const,
+            context: { templateError: error }
+          });
+        }
         
         // Convert validation warnings to template warnings
         for (const warning of result.warnings) {

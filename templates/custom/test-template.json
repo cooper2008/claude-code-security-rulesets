@@ -1,0 +1,55 @@
+{
+  "id": "test-template",
+  "name": "Test Template",
+  "version": "1.0.0",
+  "category": "development",
+  "description": "A test template for unit testing",
+  "compliance": [],
+  "tags": [
+    "test",
+    "development"
+  ],
+  "isBuiltIn": false,
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "rules": {
+    "permissions": {
+      "deny": [
+        "**/*password*",
+        "**/private*/**",
+        "Execute(rm -rf)"
+      ],
+      "allow": [
+        "Read(/app/**)",
+        "Write(/app/logs/**)",
+        "Execute(npm)"
+      ],
+      "ask": [
+        "Write(**/package.json)",
+        "Network(api.example.com)"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1757391045617,
+      "templateId": "test-template",
+      "name": "Test Template Configuration"
+    }
+  },
+  "parameters": [
+    {
+      "name": "appPath",
+      "type": "string",
+      "description": "Path to the application directory",
+      "required": true,
+      "defaultValue": "/app"
+    },
+    {
+      "name": "enableLogging",
+      "type": "boolean",
+      "description": "Enable application logging",
+      "required": false,
+      "defaultValue": true
+    }
+  ]
+}

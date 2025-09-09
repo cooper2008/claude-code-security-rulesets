@@ -13,7 +13,7 @@ import {
   Environment,
   TemplateCategory,
   ComplianceFramework
-} from '../types';
+} from '../types/index';
 import { validationEngine } from '../validation/engine';
 import { mergeConfigurations, MergeContext } from '../config/merger';
 import { TemplateLoader } from './loader';

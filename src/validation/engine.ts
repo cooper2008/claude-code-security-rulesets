@@ -14,7 +14,7 @@ import {
   RuleConflict,
   SecurityImpact,
   ResolutionSuggestion
-} from '../types';
+} from '../types/index';
 import {
   NormalizedRule,
   ValidationOptions,
@@ -183,7 +183,7 @@ export class ValidationEngine {
           result.errors.push({
             type: 'SECURITY_VIOLATION',
             message: issue.description,
-            severity: 'error', // Map critical/high to error
+            severity: 'critical', // Map critical/high to error
             context: { issue }
           });
           result.isValid = false;
@@ -249,7 +249,7 @@ export class ValidationEngine {
         errors: [{
           type: 'INVALID_SYNTAX',
           message: `Validation failed: ${error}`,
-          severity: 'error'
+          severity: 'critical'
         }],
         warnings: [],
         conflicts: [],
@@ -431,7 +431,7 @@ export class ValidationEngine {
         evaluation.errors.push({
           type: 'INVALID_PATTERN',
           message: `Empty rule pattern in ${rule.category} rules`,
-          severity: 'warning',
+          severity: 'medium',
           location: { rule: rule.original }
         });
       }
@@ -456,7 +456,7 @@ export class ValidationEngine {
           evaluation.errors.push({
             type: 'INVALID_PATTERN',
             message: `Invalid regex pattern: ${rule.original}`,
-            severity: 'warning',
+            severity: 'medium',
             context: { error: String(e) }
           });
         }
@@ -753,7 +753,7 @@ export class ValidationEngine {
         errors.push({
           type: 'SECURITY_VIOLATION',
           message: `ZERO-BYPASS VIOLATION: ${conflict.message}`,
-          severity: 'error',
+          severity: 'critical',
           context: {
             conflict,
             resolution: 'Deny rules must not be overrideable by allow or ask rules'
@@ -784,7 +784,7 @@ export class ValidationEngine {
     for (const violation of zeroBypassViolations) {
       criticalIssues.push({
         type: 'zero-bypass-violation',
-        severity: 'error',
+        severity: 'critical',
         description: violation.message,
         affectedRules: violation.conflictingRules.map(r => r.pattern),
         suggestedFix: 'Remove or modify the allow/ask rule to not overlap with deny rules'

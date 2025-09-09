@@ -11,7 +11,7 @@ import {
   TemplateCategory,
   ComplianceFramework,
   Environment
-} from '../types';
+} from '../types/index';
 
 /**
  * Template registry options

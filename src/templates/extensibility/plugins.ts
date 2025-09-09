@@ -9,7 +9,7 @@ import {
   TemplateStorage,
   TemplateUtils
 } from './types';
-import { ClaudeCodeConfiguration } from '../../types';
+import { ClaudeCodeConfiguration } from '../../types/index';
 import { PluginSandbox, createSecureSandbox } from './sandbox';
 import { EventEmitter } from 'events';
 

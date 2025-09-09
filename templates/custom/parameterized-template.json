@@ -1,0 +1,88 @@
+{
+  "id": "parameterized-template",
+  "name": "Parameterized Template",
+  "version": "1.0.0",
+  "category": "custom",
+  "description": "Template with parameters for testing",
+  "compliance": [],
+  "tags": [
+    "test",
+    "parameterized"
+  ],
+  "isBuiltIn": false,
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "rules": {
+    "permissions": {
+      "deny": [
+        "**/*secret*",
+        "{{denyPath}}/**"
+      ],
+      "allow": [
+        "Read({{projectPath}}/**)",
+        "Write({{projectPath}}/dist/**)",
+        "Execute({{allowedCommand}})"
+      ],
+      "ask": [
+        "Network({{apiEndpoint}})"
+      ]
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "timestamp": 1757391045802,
+      "templateId": "parameterized-template",
+      "name": "{{templateName}}"
+    }
+  },
+  "parameters": [
+    {
+      "name": "projectPath",
+      "type": "string",
+      "description": "Path to the project",
+      "required": true,
+      "defaultValue": "/project"
+    },
+    {
+      "name": "templateName",
+      "type": "string",
+      "description": "Name for the template",
+      "required": true,
+      "validation": {
+        "minLength": 1,
+        "maxLength": 100
+      }
+    },
+    {
+      "name": "denyPath",
+      "type": "string",
+      "description": "Path to deny access to",
+      "required": false,
+      "defaultValue": "/restricted"
+    },
+    {
+      "name": "allowedCommand",
+      "type": "string",
+      "description": "Command to allow execution",
+      "required": false,
+      "defaultValue": "node",
+      "validation": {
+        "enum": [
+          "node",
+          "npm",
+          "python",
+          "java"
+        ]
+      }
+    },
+    {
+      "name": "apiEndpoint",
+      "type": "string",
+      "description": "API endpoint to ask permission for",
+      "required": false,
+      "defaultValue": "api.example.com",
+      "validation": {
+        "pattern": "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+      }
+    }
+  ]
+}
